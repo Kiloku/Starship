@@ -446,6 +446,10 @@ void DrawEnhancementsMenu() {
                 .tooltip = "Character heads are displayed inside Arwings in all cutscenes",
                 .defaultValue = true
             });
+            UIWidgets::CVarCheckbox("Score penalty on Katina Friendly Fire", "gKatinaPunishFF", {
+                .tooltip = "Shooting down a friendly fighter on Katina reduces your score.",
+                .defaultValue = false
+            });
 
             ImGui::EndMenu();
         }
