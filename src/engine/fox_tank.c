@@ -1,6 +1,7 @@
 #include "global.h"
 #include "assets/ast_landmaster.h"
 #include "assets/ast_titania.h"
+#include "port/hooks/Events.h"
 
 void func_tank_80047754(Player* player);
 void func_tank_80047D38(Player* player, f32);
@@ -569,6 +570,7 @@ void func_tank_80045348(Player* player) {
             }
 
             Math_SmoothStepToF(&D_ctx_801779A8[player->num], 50.0f, 1.0f, 10.0f, 0.0f);
+            CALL_EVENT(PlayerActionEvent, BOOST);
         } else {
             D_800C9F24 = 0.0f;
         }
@@ -579,6 +581,7 @@ void func_tank_80045348(Player* player) {
             sp3C = 0.2f;
             D_800C9F28 += 1.0f;
             Math_SmoothStepToF(&D_ctx_801779A8[player->num], 25.0f, 1.0f, 5.0f, 0.0f);
+            CALL_EVENT(PlayerActionEvent, BRAKE);
         } else {
             D_800C9F28 = 0.0f;
         }

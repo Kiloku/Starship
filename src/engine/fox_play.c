@@ -5143,6 +5143,7 @@ void Player_ArwingBoost(Player* player) {
                 if (gBoostButton[player->num] & gInputPress->button) {
                     gLoopBoostTimers[gPlayerNum] = 5;
                 }
+                CALL_EVENT(PlayerActionEvent, BOOST);
             }
             if (gLevelType == LEVELTYPE_PLANET) {
                 player->arwing.unk_28 += (35.0f - player->arwing.unk_28) * 0.1f;
@@ -5244,6 +5245,7 @@ void Player_ArwingBrake(Player* player) {
             if ((gLevelMode == LEVELMODE_ALL_RANGE) && (gInputPress->button & gBrakeButton[player->num])) {
                 gUturnBrakeTimers[gPlayerNum] = 5;
             }
+            CALL_EVENT(PlayerActionEvent, BRAKE);
         }
 
         if (gLevelType == LEVELTYPE_PLANET) {

@@ -6,7 +6,7 @@
 typedef enum {
     BOOST,
     BRAKE,
-    SHOOT,
+    SHOOT, //TODO this and all below
     SHOOT_CHARGED,
     BOMB,
     SOMERSAULT,
@@ -18,7 +18,7 @@ DEFINE_EVENT(4, PlayerActionEvent, EVENT_TYPE_PRE,
     PlayerAction action;
 );
 
-typedef enum {
+typedef enum { //TODO this and all below
     TURN, //Normal turning with the stick
     BANK, //Full lateral banking with Z/R
     PITCH,
