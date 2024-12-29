@@ -3,17 +3,18 @@
 #include <libultraship.h>
 #include "port/hooks/impl/EventSystem.h"
 
-typedef enum {
-    PLAYER_ACTION_BOOST,
-    PLAYER_ACTION_BRAKE,
-    PLAYER_ACTION_SHOOT, //TODO this and all below
-    PLAYER_ACTION_SHOOT_CHARGED,
-    PLAYER_ACTION_BOMB,
-} PlayerAction;
+DEFINE_EVENT(PlayerActionBoostEvent);
 
-DEFINE_EVENT(PlayerActionEvent, 
-    PlayerAction action;
-);
+DEFINE_EVENT(PlayerActionBrakeEvent);
+
+DEFINE_EVENT(PlayerActionPreShootEvent, LaserStrength laser;);
+DEFINE_EVENT(PlayerActionPostShootEvent, LaserStrength laser;);
+
+DEFINE_EVENT(PlayerActionPreShootChargedEvent); //TODO
+DEFINE_EVENT(PlayerActionPostShootChargedEvent);
+
+DEFINE_EVENT(PlayerActionPreBombEvent); //TODO
+DEFINE_EVENT(PlayerActionPostBombEvent);
 
 typedef enum { //TODO this and all below
     PLAYER_MOVE_TURN, //Normal turning with the stick
