@@ -1,8 +1,10 @@
 #include "PortEnhancements.h"
-#include "port/hooks/Events.h"
 #include "global.h"
 #include "hit64.h"
 #include "mods.h"
+
+#define INIT_EVENT_IDS
+#include "port/hooks/Events.h"
 
 void OnDisplayUpdatePre(IEvent* event) {
 #if DEBUG_BOSS_KILLER == 1
@@ -156,9 +158,41 @@ void OnGameUpdatePost(IEvent* event) {
 }
 
 void PortEnhancements_Init() {
+    PortEnhancements_Register();
+
     // Register event listeners
-    EventSystem_RegisterListener(DisplayPreUpdateEvent, OnDisplayUpdatePre, EVENT_PRIORITY_NORMAL);
-    EventSystem_RegisterListener(GamePostUpdateEvent, OnGameUpdatePost, EVENT_PRIORITY_NORMAL);
+    REGISTER_LISTENER(DisplayPreUpdateEvent, OnDisplayUpdatePre, EVENT_PRIORITY_NORMAL);
+    REGISTER_LISTENER(GamePostUpdateEvent, OnGameUpdatePost, EVENT_PRIORITY_NORMAL);
+}
+
+void PortEnhancements_Register() {
+    // Register engine events
+    REGISTER_EVENT(DisplayPreUpdateEvent);
+    REGISTER_EVENT(DisplayPostUpdateEvent);
+
+    REGISTER_EVENT(GamePreUpdateEvent);
+    REGISTER_EVENT(GamePostUpdateEvent);
+
+    REGISTER_EVENT(DrawRadarHUDEvent);
+    REGISTER_EVENT(DrawBoostGaugeHUDEvent);
+    REGISTER_EVENT(DrawBombCounterHUDEvent);
+    REGISTER_EVENT(DrawIncomingMsgHUDEvent);
+    REGISTER_EVENT(DrawGoldRingsHUDEvent);
+    REGISTER_EVENT(DrawLivesCounterHUDEvent);
+    REGISTER_EVENT(DrawTrainingRingPassCountHUDEvent);
+    REGISTER_EVENT(DrawEdgeArrowsHUDEvent);
+    REGISTER_EVENT(DrawBossHealthHUDEvent);
+    REGISTER_EVENT(DrawGlobalHUDPreEvent);
+    REGISTER_EVENT(DrawGlobalHUDPostEvent);
+
+    // Register item events
+    REGISTER_EVENT(ItemDropEvent);
+
+    // Register actor events
+    REGISTER_EVENT(ObjectInitEvent);
+    REGISTER_EVENT(ObjectUpdateEvent);
+    REGISTER_EVENT(ObjectDrawEvent);
+    REGISTER_EVENT(ObjectDestroyEvent);
 }
 
 void PortEnhancements_Exit() {

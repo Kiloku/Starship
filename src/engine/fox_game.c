@@ -348,7 +348,7 @@ void Game_Update(void) {
     u8 soundMode;
 
     // @port: @event: Call GamePreUpdateEvent
-    EventSystem_CallEvent(GamePreUpdateEvent, NULL);
+    CALL_EVENT(GamePreUpdateEvent);
 
     Game_SetGameState();
     if (gGameStandby) {
@@ -568,9 +568,13 @@ void Game_Update(void) {
                 Radio_Draw();
                 if (gShowHud) {
                     HUD_Draw();
-                    HUD_EdgeArrows_Update();
+                    CALL_CANCELLABLE_EVENT(DrawEdgeArrowsHUDEvent){
+                        HUD_EdgeArrows_Update();
+                    }
                 }
-                HUD_DrawBossHealth();
+                CALL_CANCELLABLE_EVENT(DrawBossHealthHUDEvent){
+                    HUD_DrawBossHealth();
+                }
             }
         } else {
             for (i = 0; i < gCamCount; i++) {
@@ -606,7 +610,7 @@ void Game_Update(void) {
         Audio_dummy_80016A50();
 
         // @port: @event: Call GamePostUpdateEvent
-        EventSystem_CallEvent(GamePostUpdateEvent, NULL);
+        CALL_EVENT(GamePostUpdateEvent);
     }
 }
 
