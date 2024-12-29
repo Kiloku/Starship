@@ -1514,31 +1514,32 @@ void Aquas_BlueMarineBoost(Player* player) {
 
         if ((gBoostButton[player->num] & gInputHold->button) && (player->unk_230 == 0) &&
             (player->state != PLAYERSTATE_U_TURN) && (player->boostCooldown == 0)) {
-            if (player->boostMeter == 0) {
-                AUDIO_PLAY_SFX(NA_SE_MARINE_BOOST, player->sfxSource, 4);
-                CALL_EVENT(PlayerActionEvent, BOOST);
-            }
-            
-
-            if (!CVarGetInteger("gInfiniteBoost", 0)) {
-                player->boostMeter += 3.0f;
-                if (player->boostMeter > 90.0f) {
-                    player->boostMeter = 90.0f;
-                    player->boostCooldown = 1;
+            CALL_CANCELLABLE_EVENT(PlayerActionEvent, BOOST){
+                if (player->boostMeter == 0) {
+                    AUDIO_PLAY_SFX(NA_SE_MARINE_BOOST, player->sfxSource, 4);
                 }
+                
+
+                if (!CVarGetInteger("gInfiniteBoost", 0)) {
+                    player->boostMeter += 3.0f;
+                    if (player->boostMeter > 90.0f) {
+                        player->boostMeter = 90.0f;
+                        player->boostCooldown = 1;
+                    }
+                }
+
+                player->boostSpeed += 2.0f;
+                if (player->boostSpeed > 10.0f) {
+                    player->boostSpeed = 10.0f;
+                }
+
+                Math_SmoothStepToF(&D_i3_801C41B8[27], 10.0f, 0.1f, 2.0f, 0.00001f);
+                Math_SmoothStepToF(&player->camDist, -200.0f, 0.1f, D_i3_801C41B8[27], 0.00001f);
+
+                player->sfx.boost = 1;
+
+                Math_SmoothStepToF(&D_ctx_801779A8[0], 50.0f, 1.0f, 10.0f, 0.0f);
             }
-
-            player->boostSpeed += 2.0f;
-            if (player->boostSpeed > 10.0f) {
-                player->boostSpeed = 10.0f;
-            }
-
-            Math_SmoothStepToF(&D_i3_801C41B8[27], 10.0f, 0.1f, 2.0f, 0.00001f);
-            Math_SmoothStepToF(&player->camDist, -200.0f, 0.1f, D_i3_801C41B8[27], 0.00001f);
-
-            player->sfx.boost = 1;
-
-            Math_SmoothStepToF(&D_ctx_801779A8[0], 50.0f, 1.0f, 10.0f, 0.0f);
         } else {
             D_i3_801C41B8[27] = 0.0f;
 
@@ -1566,30 +1567,31 @@ void Aquas_BlueMarineBrake(Player* player) {
 
     if ((gInputHold->button & gBrakeButton[player->num]) && (player->unk_230 == 0) &&
         (player->state != PLAYERSTATE_U_TURN) && (player->boostCooldown == 0)) {
-        if (player->boostMeter == 0) {
-            AUDIO_PLAY_SFX(NA_SE_MARINE_BRAKE, player->sfxSource, 4);
-            CALL_EVENT(PlayerActionEvent, BRAKE);
-        }
-
-        if (!CVarGetInteger("gInfiniteBoost", 0)) {
-            player->boostMeter += 3.0f;
-            if (player->boostMeter > 90.0f) {
-                player->boostMeter = 90.0f;
-                player->boostCooldown = 1;
+        CALL_CANCELLABLE_EVENT(PlayerActionEvent, BRAKE){
+            if (player->boostMeter == 0) {
+                AUDIO_PLAY_SFX(NA_SE_MARINE_BRAKE, player->sfxSource, 4);
             }
+
+            if (!CVarGetInteger("gInfiniteBoost", 0)) {
+                player->boostMeter += 3.0f;
+                if (player->boostMeter > 90.0f) {
+                    player->boostMeter = 90.0f;
+                    player->boostCooldown = 1;
+                }
+            }
+
+            player->boostSpeed -= 1.0f;
+            if (player->boostSpeed < -20.0f) {
+                player->boostSpeed = -20.0f;
+            }
+
+            Math_SmoothStepToF(&D_i3_801C41B8[28], 10.0f, 1.0f, 2.0f, 0.00001f);
+            Math_SmoothStepToF(&player->camDist, 180.0f, 0.1f, D_i3_801C41B8[28], 0.0f);
+
+            player->sfx.brake = true;
+
+            Math_SmoothStepToF(&D_ctx_801779A8[0], 25.0f, 1.0f, 5.0f, 0.0f);
         }
-
-        player->boostSpeed -= 1.0f;
-        if (player->boostSpeed < -20.0f) {
-            player->boostSpeed = -20.0f;
-        }
-
-        Math_SmoothStepToF(&D_i3_801C41B8[28], 10.0f, 1.0f, 2.0f, 0.00001f);
-        Math_SmoothStepToF(&player->camDist, 180.0f, 0.1f, D_i3_801C41B8[28], 0.0f);
-
-        player->sfx.brake = true;
-
-        Math_SmoothStepToF(&D_ctx_801779A8[0], 25.0f, 1.0f, 5.0f, 0.0f);
     } else {
         if (player->boostMeter > 0.0f) {
             player->boostMeter -= 0.5f;

@@ -5136,39 +5136,40 @@ void Player_ArwingBoost(Player* player) {
         }
         if ((gInputHold->button & gBoostButton[player->num]) && !(gInputHold->button & gBrakeButton[player->num]) &&
             (player->state != PLAYERSTATE_U_TURN) && !player->boostCooldown) {
-            if (player->boostMeter == 0.0f) {
-                Player_PlaySfx(player->sfxSource, NA_SE_ARWING_BOOST, player->num);
-                player->unk_194 = 5.0f;
-                player->unk_190 = 5.0f;
-                if (gBoostButton[player->num] & gInputPress->button) {
-                    gLoopBoostTimers[gPlayerNum] = 5;
+            CALL_CANCELLABLE_EVENT(PlayerActionEvent, BOOST) {
+                if (player->boostMeter == 0.0f) {
+                    Player_PlaySfx(player->sfxSource, NA_SE_ARWING_BOOST, player->num);
+                    player->unk_194 = 5.0f;
+                    player->unk_190 = 5.0f;
+                    if (gBoostButton[player->num] & gInputPress->button) {
+                        gLoopBoostTimers[gPlayerNum] = 5;
+                    }
                 }
-                CALL_EVENT(PlayerActionEvent, BOOST);
+                if (gLevelType == LEVELTYPE_PLANET) {
+                    player->arwing.unk_28 += (35.0f - player->arwing.unk_28) * 0.1f;
+                    Math_SmoothStepToF(&player->arwing.upperRightFlapYrot, 0.0f, 0.5f, 100.0f, 0.0f);
+                    Math_SmoothStepToF(&player->arwing.bottomRightFlapYrot, 0.0f, 0.5f, 100.0f, 0.0f);
+                    Math_SmoothStepToF(&player->arwing.upperLeftFlapYrot, 0.0f, 0.5f, 100.0f, 0.0f);
+                    Math_SmoothStepToF(&player->arwing.bottomLeftFlapYrot, 0.0f, 0.5f, 100.0f, 0.0f);
+                }
+                player->boostMeter += sp28;
+                if (player->boostMeter > 90.0f) {
+                    player->boostMeter = 90.0f;
+                    player->boostCooldown = true;
+                }
+                player->contrailScale += 0.04f;
+                if (player->contrailScale > 0.6f) {
+                    player->contrailScale = 0.6f;
+                }
+                player->unk_190 = 2.0f;
+                player->boostSpeed += 2.0f;
+                if (player->boostSpeed > 30.0f) {
+                    player->boostSpeed = 30.0f;
+                }
+                Math_SmoothStepToF(&player->camDist, -400.0f, 0.1f, 30.0f, 0.0f);
+                player->sfx.boost = 1;
+                Math_SmoothStepToF(&D_ctx_801779A8[player->num], 50.0f, 1.0f, 10.0f, 0.0f);
             }
-            if (gLevelType == LEVELTYPE_PLANET) {
-                player->arwing.unk_28 += (35.0f - player->arwing.unk_28) * 0.1f;
-                Math_SmoothStepToF(&player->arwing.upperRightFlapYrot, 0.0f, 0.5f, 100.0f, 0.0f);
-                Math_SmoothStepToF(&player->arwing.bottomRightFlapYrot, 0.0f, 0.5f, 100.0f, 0.0f);
-                Math_SmoothStepToF(&player->arwing.upperLeftFlapYrot, 0.0f, 0.5f, 100.0f, 0.0f);
-                Math_SmoothStepToF(&player->arwing.bottomLeftFlapYrot, 0.0f, 0.5f, 100.0f, 0.0f);
-            }
-            player->boostMeter += sp28;
-            if (player->boostMeter > 90.0f) {
-                player->boostMeter = 90.0f;
-                player->boostCooldown = true;
-            }
-            player->contrailScale += 0.04f;
-            if (player->contrailScale > 0.6f) {
-                player->contrailScale = 0.6f;
-            }
-            player->unk_190 = 2.0f;
-            player->boostSpeed += 2.0f;
-            if (player->boostSpeed > 30.0f) {
-                player->boostSpeed = 30.0f;
-            }
-            Math_SmoothStepToF(&player->camDist, -400.0f, 0.1f, 30.0f, 0.0f);
-            player->sfx.boost = 1;
-            Math_SmoothStepToF(&D_ctx_801779A8[player->num], 50.0f, 1.0f, 10.0f, 0.0f);
         } else {
             if (player->boostMeter > 0.0f) {
                 player->boostMeter -= sp2C;
@@ -5240,35 +5241,36 @@ void Player_ArwingBrake(Player* player) {
 
     if ((gInputHold->button & gBrakeButton[player->num]) && !(gInputHold->button & gBoostButton[player->num]) &&
         (player->state != PLAYERSTATE_U_TURN) && !player->boostCooldown) {
-        if (player->boostMeter == 0.0f) {
-            Player_PlaySfx(player->sfxSource, NA_SE_ARWING_BRAKE, player->num);
-            if ((gLevelMode == LEVELMODE_ALL_RANGE) && (gInputPress->button & gBrakeButton[player->num])) {
-                gUturnBrakeTimers[gPlayerNum] = 5;
+        CALL_CANCELLABLE_EVENT(PlayerActionEvent, BRAKE) {
+            if (player->boostMeter == 0.0f) {
+                Player_PlaySfx(player->sfxSource, NA_SE_ARWING_BRAKE, player->num);
+                if ((gLevelMode == LEVELMODE_ALL_RANGE) && (gInputPress->button & gBrakeButton[player->num])) {
+                    gUturnBrakeTimers[gPlayerNum] = 5;
+                }
             }
-            CALL_EVENT(PlayerActionEvent, BRAKE);
-        }
 
-        if (gLevelType == LEVELTYPE_PLANET) {
-            Math_SmoothStepToF(&player->arwing.upperRightFlapYrot, 90.0f, 0.2f, 100.0f, 0.0f);
-            Math_SmoothStepToF(&player->arwing.bottomRightFlapYrot, -90.0f, 0.2f, 100.0f, 0.0f);
-            Math_SmoothStepToF(&player->arwing.upperLeftFlapYrot, 90.0f, 0.2f, 100.0f, 0.0f);
-            Math_SmoothStepToF(&player->arwing.bottomLeftFlapYrot, -90.0f, 0.2f, 100.0f, 0.0f);
-        }
-        player->boostMeter += sp30;
-        if (player->boostMeter > 90.0f) {
-            player->boostCooldown = true;
-            player->boostMeter = 90.0f;
-        }
+            if (gLevelType == LEVELTYPE_PLANET) {
+                Math_SmoothStepToF(&player->arwing.upperRightFlapYrot, 90.0f, 0.2f, 100.0f, 0.0f);
+                Math_SmoothStepToF(&player->arwing.bottomRightFlapYrot, -90.0f, 0.2f, 100.0f, 0.0f);
+                Math_SmoothStepToF(&player->arwing.upperLeftFlapYrot, 90.0f, 0.2f, 100.0f, 0.0f);
+                Math_SmoothStepToF(&player->arwing.bottomLeftFlapYrot, -90.0f, 0.2f, 100.0f, 0.0f);
+            }
+            player->boostMeter += sp30;
+            if (player->boostMeter > 90.0f) {
+                player->boostCooldown = true;
+                player->boostMeter = 90.0f;
+            }
 
-        player->unk_190 = 0.3f;
-        player->boostSpeed -= 1.0f;
-        if (player->boostSpeed < -20.0f) {
-            player->boostSpeed = -20.0f;
-        }
+            player->unk_190 = 0.3f;
+            player->boostSpeed -= 1.0f;
+            if (player->boostSpeed < -20.0f) {
+                player->boostSpeed = -20.0f;
+            }
 
-        Math_SmoothStepToF(&player->camDist, 180.0f, 0.1f, 10.0f, 0.0f);
-        player->sfx.brake = true;
-        Math_SmoothStepToF(&D_ctx_801779A8[player->num], 25.0f, 1.0f, 5.0f, 0.0f);
+            Math_SmoothStepToF(&player->camDist, 180.0f, 0.1f, 10.0f, 0.0f);
+            player->sfx.brake = true;
+            Math_SmoothStepToF(&D_ctx_801779A8[player->num], 25.0f, 1.0f, 5.0f, 0.0f);
+        }
     } else if (player->boostMeter > 0.0f) {
         player->boostMeter -= sp34;
         if (player->boostMeter <= 0.0f) {
