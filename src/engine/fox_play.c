@@ -5136,7 +5136,7 @@ void Player_ArwingBoost(Player* player) {
         }
         if ((gInputHold->button & gBoostButton[player->num]) && !(gInputHold->button & gBrakeButton[player->num]) &&
             (player->state != PLAYERSTATE_U_TURN) && !player->boostCooldown) {
-            CALL_CANCELLABLE_EVENT(PlayerActionEvent, BOOST) {
+            CALL_CANCELLABLE_EVENT(PlayerActionEvent, PLAYER_ACTION_BOOST) {
                 if (player->boostMeter == 0.0f) {
                     Player_PlaySfx(player->sfxSource, NA_SE_ARWING_BOOST, player->num);
                     player->unk_194 = 5.0f;
@@ -5241,7 +5241,7 @@ void Player_ArwingBrake(Player* player) {
 
     if ((gInputHold->button & gBrakeButton[player->num]) && !(gInputHold->button & gBoostButton[player->num]) &&
         (player->state != PLAYERSTATE_U_TURN) && !player->boostCooldown) {
-        CALL_CANCELLABLE_EVENT(PlayerActionEvent, BRAKE) {
+        CALL_CANCELLABLE_EVENT(PlayerActionEvent, PLAYER_ACTION_BRAKE) {
             if (player->boostMeter == 0.0f) {
                 Player_PlaySfx(player->sfxSource, NA_SE_ARWING_BRAKE, player->num);
                 if ((gLevelMode == LEVELMODE_ALL_RANGE) && (gInputPress->button & gBrakeButton[player->num])) {
