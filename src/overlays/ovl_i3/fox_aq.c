@@ -1226,17 +1226,22 @@ void Aquas_BlueMarineTorpedo(Player* player) {
 
 void Aquas_BlueMarineLaser(Player* player) {
     s32 i;
-
-    for (i = 0; i < 3; i++) {
-        if (gPlayerShots[i].obj.status == SHOT_FREE) {
-            Player_SetupArwingShot(player, &gPlayerShots[i], 0.0f, -10.0f, PLAYERSHOT_SINGLE_LASER, 120.0f);
-            if (gLaserStrength[gPlayerNum] == LASERS_SINGLE) {
-                AUDIO_PLAY_SFX(NA_SE_MAR_SHOT, gPlayerShots[i].sfxSource, 0);
-            } else {
-                AUDIO_PLAY_SFX(NA_SE_MAR_TWIN_LASER, gPlayerShots[i].sfxSource, 0);
+    
+    CALL_CANCELLABLE_EVENT(PlayerActionPreShootEvent, gLaserStrength[gPlayerNum]) {
+        for (i = 0; i < 3; i++) {
+            if (gPlayerShots[i].obj.status == SHOT_FREE) {
+                Player_SetupArwingShot(player, &gPlayerShots[i], 0.0f, -10.0f, PLAYERSHOT_SINGLE_LASER, 120.0f);
+                if (gLaserStrength[gPlayerNum] == LASERS_SINGLE) {
+                    AUDIO_PLAY_SFX(NA_SE_MAR_SHOT, gPlayerShots[i].sfxSource, 0);
+                } else {
+                    AUDIO_PLAY_SFX(NA_SE_MAR_TWIN_LASER, gPlayerShots[i].sfxSource, 0);
+                }
+                break;
             }
-            break;
         }
+    }
+    if (!PlayerActionPreShootEvent_.event.cancelled){
+        CALL_EVENT(PlayerActionPostShootEvent, gLaserStrength[gPlayerNum]);
     }
 }
 

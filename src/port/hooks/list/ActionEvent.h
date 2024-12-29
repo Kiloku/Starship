@@ -1,6 +1,6 @@
 #pragma once
 
-#include <libultraship.h>
+#include "sf64player.h"
 #include "port/hooks/impl/EventSystem.h"
 
 DEFINE_EVENT(PlayerActionBoostEvent);

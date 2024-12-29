@@ -3145,13 +3145,18 @@ void Player_SetupTankShot(Player* player, PlayerShot* shot, PlayerShotId shotId,
 void Player_TankCannon(Player* player) {
     s32 i;
 
-    for (i = 0; i < ARRAY_COUNT(gPlayerShots) - 1; i++) {
-        if (gPlayerShots[i].obj.status == SHOT_FREE) {
-            Player_SetupTankShot(player, &gPlayerShots[i], PLAYERSHOT_TANK, 100.0f);
-            Player_PlaySfx(player->sfxSource, NA_SE_TANK_SHOT, player->num);
-            player->unk_1A0 = 2;
-            break;
+    CALL_CANCELLABLE_EVENT(PlayerActionPreShootEvent, gLaserStrength[gPlayerNum]) {
+        for (i = 0; i < ARRAY_COUNT(gPlayerShots) - 1; i++) {
+            if (gPlayerShots[i].obj.status == SHOT_FREE) {
+                Player_SetupTankShot(player, &gPlayerShots[i], PLAYERSHOT_TANK, 100.0f);
+                Player_PlaySfx(player->sfxSource, NA_SE_TANK_SHOT, player->num);
+                player->unk_1A0 = 2;
+                break;
+            }
         }
+    }
+    if (!PlayerActionPreShootEvent_.event.cancelled){
+        CALL_EVENT(PlayerActionPostShootEvent, gLaserStrength[gPlayerNum]);
     }
 }
 
@@ -3163,37 +3168,42 @@ void Player_ArwingLaser(Player* player) {
     if (player->arwing.laserGunsYpos > -8.0f) {
         laser = LASERS_SINGLE;
     }
-
+    CALL_EVENT(PlayerActionPreShootEvent, laser);
     switch (laser) {
         case LASERS_SINGLE:
-            for (i = 0; i < ARRAY_COUNT(gPlayerShots) - 1; i++) {
-                if (gPlayerShots[i].obj.status == SHOT_FREE) {
-                    Player_SetupArwingShot(player, &gPlayerShots[i], 0.0f, 0.0f, PLAYERSHOT_SINGLE_LASER,
-                                           400.0f / 3.0f);
-                    Player_PlaySfx(player->sfxSource, NA_SE_ARWING_SHOT, player->num);
-                    gMuzzleFlashScale[player->num] = 0.5f;
-                    break;
+            if (!PlayerActionPreShootEvent_.event.cancelled){
+                for (i = 0; i < ARRAY_COUNT(gPlayerShots) - 1; i++) {
+                    if (gPlayerShots[i].obj.status == SHOT_FREE) {
+                        Player_SetupArwingShot(player, &gPlayerShots[i], 0.0f, 0.0f, PLAYERSHOT_SINGLE_LASER,
+                                            400.0f / 3.0f);
+                        Player_PlaySfx(player->sfxSource, NA_SE_ARWING_SHOT, player->num);
+                        gMuzzleFlashScale[player->num] = 0.5f;
+                        break;
+                    }
                 }
             }
             break;
         case LASERS_TWIN:
         case LASERS_HYPER:
-            for (i = 0; i < ARRAY_COUNT(gPlayerShots) - 1; i++) {
-                if (gPlayerShots[i].obj.status == SHOT_FREE) {
-                    Player_SetupArwingShot(player, &gPlayerShots[i], 0.0f, -10.0f, PLAYERSHOT_TWIN_LASER,
-                                           400.0f / 3.0f);
-                    if (laser == LASERS_TWIN) {
-                        Player_PlaySfx(player->sfxSource, NA_SE_ARWING_TWIN_LASER, player->num);
-                        gMuzzleFlashScale[player->num] = 0.5f;
-                    } else {
-                        Player_PlaySfx(player->sfxSource, NA_SE_ARWING_TWIN_LASER2, player->num);
-                        gMuzzleFlashScale[player->num] = 0.75f;
+            if (!PlayerActionPreShootEvent_.event.cancelled){
+                for (i = 0; i < ARRAY_COUNT(gPlayerShots) - 1; i++) {
+                    if (gPlayerShots[i].obj.status == SHOT_FREE) {
+                        Player_SetupArwingShot(player, &gPlayerShots[i], 0.0f, -10.0f, PLAYERSHOT_TWIN_LASER,
+                                            400.0f / 3.0f);
+                        if (laser == LASERS_TWIN) {
+                            Player_PlaySfx(player->sfxSource, NA_SE_ARWING_TWIN_LASER, player->num);
+                            gMuzzleFlashScale[player->num] = 0.5f;
+                        } else {
+                            Player_PlaySfx(player->sfxSource, NA_SE_ARWING_TWIN_LASER2, player->num);
+                            gMuzzleFlashScale[player->num] = 0.75f;
+                        }
+                        break;
                     }
-                    break;
                 }
             }
             break;
     }
+    CALL_EVENT(PlayerActionPostShootEvent, laser);
 }
 
 void Player_SmartBomb(Player* player) {
