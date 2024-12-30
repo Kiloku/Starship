@@ -157,12 +157,31 @@ void OnGameUpdatePost(IEvent* event) {
     }
 }
 
+void RefillBoostMeter(Player* player) {
+    player->boostMeter = 0.0f;
+}
+
+void OnPlayerBoost(PlayerActionBoostEvent* event) {
+    if (CVarGetInteger("gInfiniteBoost", 0) == 1){
+        RefillBoostMeter(event->player);
+    }
+}
+void OnPlayerBrake(PlayerActionBrakeEvent* event) {
+    if (CVarGetInteger("gInfiniteBoost", 0) == 1){
+        RefillBoostMeter(event->player);
+    }
+}
+
 void PortEnhancements_Init() {
     PortEnhancements_Register();
 
     // Register event listeners
     REGISTER_LISTENER(DisplayPreUpdateEvent, OnDisplayUpdatePre, EVENT_PRIORITY_NORMAL);
     REGISTER_LISTENER(GamePostUpdateEvent, OnGameUpdatePost, EVENT_PRIORITY_NORMAL);
+
+    // Register Action listeners
+    REGISTER_LISTENER(PlayerActionBoostEvent, OnPlayerBoost, EVENT_PRIORITY_NORMAL);
+    REGISTER_LISTENER(PlayerActionBrakeEvent, OnPlayerBrake, EVENT_PRIORITY_NORMAL);
 }
 
 void PortEnhancements_Register() {

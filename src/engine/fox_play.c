@@ -5099,9 +5099,6 @@ void Player_ArwingBoost(Player* player) {
         sp28 = 1.5f;
         sp2C = 0.35f;
     }
-    if (CVarGetInteger("gInfiniteBoost", 0)) {
-        sp28 = 0.0f;
-    } 
     
     player->sfx.boost = 0;
 
@@ -5234,9 +5231,6 @@ void Player_ArwingBrake(Player* player) {
         sp30 = 1.5f;
         sp34 = 0.35f;
     }
-    if (CVarGetInteger("gInfiniteBoost", 0)) {
-        sp30 = 0.0f;
-    } 
 
     player->sfx.brake = false;
 
