@@ -3145,7 +3145,7 @@ void Player_SetupTankShot(Player* player, PlayerShot* shot, PlayerShotId shotId,
 void Player_TankCannon(Player* player) {
     s32 i;
 
-    CALL_CANCELLABLE_EVENT(PlayerActionPreShootEvent, gLaserStrength[gPlayerNum]) {
+    CALL_CANCELLABLE_EVENT(PlayerActionPreShootEvent, player, gLaserStrength[gPlayerNum]) {
         for (i = 0; i < ARRAY_COUNT(gPlayerShots) - 1; i++) {
             if (gPlayerShots[i].obj.status == SHOT_FREE) {
                 Player_SetupTankShot(player, &gPlayerShots[i], PLAYERSHOT_TANK, 100.0f);
@@ -3156,7 +3156,7 @@ void Player_TankCannon(Player* player) {
         }
     }
     if (!PlayerActionPreShootEvent_.event.cancelled){
-        CALL_EVENT(PlayerActionPostShootEvent, gLaserStrength[gPlayerNum]);
+        CALL_EVENT(PlayerActionPostShootEvent, player, gLaserStrength[gPlayerNum]);
     }
 }
 
@@ -3169,7 +3169,7 @@ void Player_ArwingLaser(Player* player) {
         laser = LASERS_SINGLE;
     }
 
-    CALL_EVENT(PlayerActionPreShootEvent, laser);
+    CALL_EVENT(PlayerActionPreShootEvent, player, laser);
     if (PlayerActionPreShootEvent_.event.cancelled){
         return;
     }
@@ -3205,14 +3205,14 @@ void Player_ArwingLaser(Player* player) {
             }            
             break;
     }
-    CALL_EVENT(PlayerActionPostShootEvent, laser);
+    CALL_EVENT(PlayerActionPostShootEvent, player, laser);
 }
 
 void Player_SmartBomb(Player* player) {
 
     if ((gBombCount[player->num] != 0) && (gBombButton[player->num] & gInputPress->button) &&
         (gPlayerShots[ARRAY_COUNT(gPlayerShots) - 1].obj.status == SHOT_FREE)) {
-        CALL_EVENT(PlayerActionPreBombEvent);
+        CALL_EVENT(PlayerActionPreBombEvent, player);
         if (PlayerActionPreBombEvent_.event.cancelled)
         {
             return;
@@ -3237,7 +3237,7 @@ void Player_SmartBomb(Player* player) {
         gPlayerShots[ARRAY_COUNT(gPlayerShots) - 1].unk_60 = 0;
         Audio_InitBombSfx(player->num, 1);
         Audio_PlayBombFlightSfx(player->num, gPlayerShots[ARRAY_COUNT(gPlayerShots) - 1].sfxSource);
-        CALL_EVENT(PlayerActionPostBombEvent);
+        CALL_EVENT(PlayerActionPostBombEvent, player);
     }
 }
 
@@ -3370,7 +3370,7 @@ bool Player_UpdateLockOn(Player* player) {
                     (gPlayerShots[14 - player->num].obj.id != PLAYERSHOT_LOCK_ON) ||
                     ((gPlayerShots[14 - player->num].obj.id == PLAYERSHOT_LOCK_ON) &&
                      (gPlayerShots[14 - player->num].unk_60 != 0))) {
-                    CALL_CANCELLABLE_EVENT(PlayerActionPreShootChargedEvent){
+                    CALL_CANCELLABLE_EVENT(PlayerActionPreShootChargedEvent, player){
                         if (player->form == FORM_ARWING) {
                             Player_SetupArwingShot(player, &gPlayerShots[14 - player->num], 0.0f, 0.0f, PLAYERSHOT_LOCK_ON,
                                                 70.0f);
@@ -3381,7 +3381,7 @@ bool Player_UpdateLockOn(Player* player) {
                         gControllerRumbleTimers[player->num] = 5;
                         return true;
                     }
-                    CALL_EVENT(PlayerActionPostShootChargedEvent);
+                    CALL_EVENT(PlayerActionPostShootChargedEvent, player);
                 }
                 break;
             }
@@ -3392,7 +3392,7 @@ bool Player_UpdateLockOn(Player* player) {
                 (gPlayerShots[14 - player->num].obj.id != PLAYERSHOT_LOCK_ON) ||
                 ((gPlayerShots[14 - player->num].obj.id == PLAYERSHOT_LOCK_ON) &&
                  (gPlayerShots[14 - player->num].scale > 1.0f))) {
-                CALL_CANCELLABLE_EVENT(PlayerActionPreShootChargedEvent){
+                CALL_CANCELLABLE_EVENT(PlayerActionPreShootChargedEvent, player){
                     if (player->form == FORM_ARWING) {
                         Player_SetupArwingShot(player, &gPlayerShots[14 - player->num], 0.0f, 0.0f, PLAYERSHOT_LOCK_ON,
                                             70.0f);
@@ -3405,7 +3405,7 @@ bool Player_UpdateLockOn(Player* player) {
                     return true;
                 }
             }
-            CALL_EVENT(PlayerActionPostShootChargedEvent);
+            CALL_EVENT(PlayerActionPostShootChargedEvent, player);
         }
         gChargeTimers[player->num] = 0;
     }
@@ -3427,7 +3427,7 @@ bool Player_UpdateLockOn(Player* player) {
         }
         if (hasBombTarget && (gBombCount[player->num] != 0) &&
             (gPlayerShots[ARRAY_COUNT(gPlayerShots) - 1].obj.status == SHOT_FREE)) {
-            CALL_CANCELLABLE_EVENT(PlayerActionPreBombEvent){
+            CALL_CANCELLABLE_EVENT(PlayerActionPreBombEvent, player){
                 gBombCount[player->num]--;
                 if (player->form == FORM_ARWING) {
                     Player_SetupArwingShot(player, &gPlayerShots[ARRAY_COUNT(gPlayerShots) - 1], 0.0f, 0.0f,
@@ -3441,7 +3441,7 @@ bool Player_UpdateLockOn(Player* player) {
                 Audio_PlayBombFlightSfx(player->num, gPlayerShots[ARRAY_COUNT(gPlayerShots) - 1].sfxSource);
                 return true;
             }
-            CALL_EVENT(PlayerActionPostBombEvent);
+            CALL_EVENT(PlayerActionPostBombEvent, player);
         }
     }
     return false;
@@ -5165,7 +5165,7 @@ void Player_ArwingBoost(Player* player) {
         }
         if ((gInputHold->button & gBoostButton[player->num]) && !(gInputHold->button & gBrakeButton[player->num]) &&
             (player->state != PLAYERSTATE_U_TURN) && !player->boostCooldown) {
-            CALL_CANCELLABLE_EVENT(PlayerActionBoostEvent) {
+            CALL_CANCELLABLE_EVENT(PlayerActionBoostEvent, player) {
                 if (player->boostMeter == 0.0f) {
                     Player_PlaySfx(player->sfxSource, NA_SE_ARWING_BOOST, player->num);
                     player->unk_194 = 5.0f;
@@ -5270,7 +5270,7 @@ void Player_ArwingBrake(Player* player) {
 
     if ((gInputHold->button & gBrakeButton[player->num]) && !(gInputHold->button & gBoostButton[player->num]) &&
         (player->state != PLAYERSTATE_U_TURN) && !player->boostCooldown) {
-        CALL_CANCELLABLE_EVENT(PlayerActionBrakeEvent) {
+        CALL_CANCELLABLE_EVENT(PlayerActionBrakeEvent, player) {
             if (player->boostMeter == 0.0f) {
                 Player_PlaySfx(player->sfxSource, NA_SE_ARWING_BRAKE, player->num);
                 if ((gLevelMode == LEVELMODE_ALL_RANGE) && (gInputPress->button & gBrakeButton[player->num])) {

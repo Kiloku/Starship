@@ -1212,7 +1212,7 @@ void Aquas_BlueMarineTorpedo(Player* player) {
 
     for (i = 15, shot = &gPlayerShots[15]; i < ARRAY_COUNT(gPlayerShots); i++, shot++) {
         if (shot->obj.status == SHOT_FREE) {
-            CALL_EVENT(PlayerActionPreBombEvent)
+            CALL_EVENT(PlayerActionPreBombEvent, player)
             if (PlayerActionPreBombEvent_.event.cancelled){
                 return;
             }
@@ -1223,7 +1223,7 @@ void Aquas_BlueMarineTorpedo(Player* player) {
             D_i3_801C4458 = -100.0f;
             D_i3_801C445C = 0.1f;
             gLight3Brightness = 1.0f;
-            CALL_EVENT(PlayerActionPostBombEvent);
+            CALL_EVENT(PlayerActionPostBombEvent, player);
             break;
         }
     }
@@ -1232,7 +1232,7 @@ void Aquas_BlueMarineTorpedo(Player* player) {
 void Aquas_BlueMarineLaser(Player* player) {
     s32 i;
     
-    CALL_CANCELLABLE_EVENT(PlayerActionPreShootEvent, gLaserStrength[gPlayerNum]) {
+    CALL_CANCELLABLE_EVENT(PlayerActionPreShootEvent, player, gLaserStrength[gPlayerNum]) {
         for (i = 0; i < 3; i++) {
             if (gPlayerShots[i].obj.status == SHOT_FREE) {
                 Player_SetupArwingShot(player, &gPlayerShots[i], 0.0f, -10.0f, PLAYERSHOT_SINGLE_LASER, 120.0f);
@@ -1246,7 +1246,7 @@ void Aquas_BlueMarineLaser(Player* player) {
         }
     }
     if (!PlayerActionPreShootEvent_.event.cancelled){
-        CALL_EVENT(PlayerActionPostShootEvent, gLaserStrength[gPlayerNum]);
+        CALL_EVENT(PlayerActionPostShootEvent, player, gLaserStrength[gPlayerNum]);
     }
 }
 
@@ -1524,7 +1524,7 @@ void Aquas_BlueMarineBoost(Player* player) {
 
         if ((gBoostButton[player->num] & gInputHold->button) && (player->unk_230 == 0) &&
             (player->state != PLAYERSTATE_U_TURN) && (player->boostCooldown == 0)) {
-            CALL_CANCELLABLE_EVENT(PlayerActionBoostEvent){
+            CALL_CANCELLABLE_EVENT(PlayerActionBoostEvent, player){
                 if (player->boostMeter == 0) {
                     AUDIO_PLAY_SFX(NA_SE_MARINE_BOOST, player->sfxSource, 4);
                 }
@@ -1577,7 +1577,7 @@ void Aquas_BlueMarineBrake(Player* player) {
 
     if ((gInputHold->button & gBrakeButton[player->num]) && (player->unk_230 == 0) &&
         (player->state != PLAYERSTATE_U_TURN) && (player->boostCooldown == 0)) {
-        CALL_CANCELLABLE_EVENT(PlayerActionBrakeEvent){
+        CALL_CANCELLABLE_EVENT(PlayerActionBrakeEvent, player){
             if (player->boostMeter == 0) {
                 AUDIO_PLAY_SFX(NA_SE_MARINE_BRAKE, player->sfxSource, 4);
             }

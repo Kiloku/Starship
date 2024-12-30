@@ -551,7 +551,7 @@ void func_tank_80045348(Player* player) {
 
     if (player->unk_19C >= 0) {
         if ((gBoostButton[player->num] & gInputHold->button) && !player->boostCooldown) {
-            CALL_CANCELLABLE_EVENT(PlayerActionBoostEvent) {
+            CALL_CANCELLABLE_EVENT(PlayerActionBoostEvent, player) {
                 D_800C9F14++;
                 sp2E = true;
                 if (D_800C9F24 == 0.0f) {
@@ -576,7 +576,7 @@ void func_tank_80045348(Player* player) {
             D_800C9F24 = 0.0f;
         }
         if ((gBrakeButton[player->num] & gInputHold->button) && !player->boostCooldown && !sp2E) {
-            CALL_CANCELLABLE_EVENT(PlayerActionBrakeEvent) {
+            CALL_CANCELLABLE_EVENT(PlayerActionBrakeEvent, player) {
                 D_800C9F14++;
                 baseSpeedTarget = 5.0f;
                 sp40 = 100.0f;
