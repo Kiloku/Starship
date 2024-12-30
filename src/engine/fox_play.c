@@ -3202,7 +3202,7 @@ void Player_ArwingLaser(Player* player) {
                     }
                     break;
                 }
-            }            
+            }
             break;
     }
     CALL_EVENT(PlayerActionPostShootEvent, player, laser);
