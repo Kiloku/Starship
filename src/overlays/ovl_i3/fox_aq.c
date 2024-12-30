@@ -1212,6 +1212,10 @@ void Aquas_BlueMarineTorpedo(Player* player) {
 
     for (i = 15, shot = &gPlayerShots[15]; i < ARRAY_COUNT(gPlayerShots); i++, shot++) {
         if (shot->obj.status == SHOT_FREE) {
+            CALL_EVENT(PlayerActionPreBombEvent)
+            if (PlayerActionPreBombEvent_.event.cancelled){
+                return;
+            }
             Player_SetupArwingShot(player, shot, 0.0f, 0.0f, PLAYERSHOT_LOCK_ON, 50.0f);
             AUDIO_PLAY_SFX(NA_SE_MAR_BOMB_SHOT, shot->sfxSource, 0);
             D_i3_801C4190[5] = i + 1;
@@ -1219,6 +1223,7 @@ void Aquas_BlueMarineTorpedo(Player* player) {
             D_i3_801C4458 = -100.0f;
             D_i3_801C445C = 0.1f;
             gLight3Brightness = 1.0f;
+            CALL_EVENT(PlayerActionPostBombEvent);
             break;
         }
     }

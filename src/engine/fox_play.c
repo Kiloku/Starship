@@ -3173,7 +3173,7 @@ void Player_ArwingLaser(Player* player) {
     if (PlayerActionPreShootEvent_.event.cancelled){
         return;
     }
-    
+
     switch (laser) {
         case LASERS_SINGLE:
             for (i = 0; i < ARRAY_COUNT(gPlayerShots) - 1; i++) {
@@ -3209,8 +3209,15 @@ void Player_ArwingLaser(Player* player) {
 }
 
 void Player_SmartBomb(Player* player) {
+
     if ((gBombCount[player->num] != 0) && (gBombButton[player->num] & gInputPress->button) &&
         (gPlayerShots[ARRAY_COUNT(gPlayerShots) - 1].obj.status == SHOT_FREE)) {
+        CALL_EVENT(PlayerActionPreBombEvent);
+        if (PlayerActionPreBombEvent_.event.cancelled)
+        {
+            return;
+        }
+
         if (gVersusMode) {
             gBombCount[player->num] = 0;
         } else {
@@ -3230,6 +3237,7 @@ void Player_SmartBomb(Player* player) {
         gPlayerShots[ARRAY_COUNT(gPlayerShots) - 1].unk_60 = 0;
         Audio_InitBombSfx(player->num, 1);
         Audio_PlayBombFlightSfx(player->num, gPlayerShots[ARRAY_COUNT(gPlayerShots) - 1].sfxSource);
+        CALL_EVENT(PlayerActionPostBombEvent);
     }
 }
 
@@ -3362,15 +3370,18 @@ bool Player_UpdateLockOn(Player* player) {
                     (gPlayerShots[14 - player->num].obj.id != PLAYERSHOT_LOCK_ON) ||
                     ((gPlayerShots[14 - player->num].obj.id == PLAYERSHOT_LOCK_ON) &&
                      (gPlayerShots[14 - player->num].unk_60 != 0))) {
-                    if (player->form == FORM_ARWING) {
-                        Player_SetupArwingShot(player, &gPlayerShots[14 - player->num], 0.0f, 0.0f, PLAYERSHOT_LOCK_ON,
-                                               70.0f);
-                    } else {
-                        Player_SetupTankShot(player, &gPlayerShots[14 - player->num], PLAYERSHOT_LOCK_ON, 70.0f);
+                    CALL_CANCELLABLE_EVENT(PlayerActionPreShootChargedEvent){
+                        if (player->form == FORM_ARWING) {
+                            Player_SetupArwingShot(player, &gPlayerShots[14 - player->num], 0.0f, 0.0f, PLAYERSHOT_LOCK_ON,
+                                                70.0f);
+                        } else {
+                            Player_SetupTankShot(player, &gPlayerShots[14 - player->num], PLAYERSHOT_LOCK_ON, 70.0f);
+                        }
+                        Object_PlayerSfx(player->sfxSource, NA_SE_LOCK_ON_LASER, player->num);
+                        gControllerRumbleTimers[player->num] = 5;
+                        return true;
                     }
-                    Object_PlayerSfx(player->sfxSource, NA_SE_LOCK_ON_LASER, player->num);
-                    gControllerRumbleTimers[player->num] = 5;
-                    return true;
+                    CALL_EVENT(PlayerActionPostShootChargedEvent);
                 }
                 break;
             }
@@ -3381,17 +3392,20 @@ bool Player_UpdateLockOn(Player* player) {
                 (gPlayerShots[14 - player->num].obj.id != PLAYERSHOT_LOCK_ON) ||
                 ((gPlayerShots[14 - player->num].obj.id == PLAYERSHOT_LOCK_ON) &&
                  (gPlayerShots[14 - player->num].scale > 1.0f))) {
-                if (player->form == FORM_ARWING) {
-                    Player_SetupArwingShot(player, &gPlayerShots[14 - player->num], 0.0f, 0.0f, PLAYERSHOT_LOCK_ON,
-                                           70.0f);
-                } else {
-                    Player_SetupTankShot(player, &gPlayerShots[14 - player->num], PLAYERSHOT_LOCK_ON, 70.0f);
+                CALL_CANCELLABLE_EVENT(PlayerActionPreShootChargedEvent){
+                    if (player->form == FORM_ARWING) {
+                        Player_SetupArwingShot(player, &gPlayerShots[14 - player->num], 0.0f, 0.0f, PLAYERSHOT_LOCK_ON,
+                                            70.0f);
+                    } else {
+                        Player_SetupTankShot(player, &gPlayerShots[14 - player->num], PLAYERSHOT_LOCK_ON, 70.0f);
+                    }
+                    Object_PlayerSfx(player->sfxSource, NA_SE_LOCK_ON_LASER, player->num);
+                    gChargeTimers[player->num] = 0;
+                    gControllerRumbleTimers[player->num] = 5;
+                    return true;
                 }
-                Object_PlayerSfx(player->sfxSource, NA_SE_LOCK_ON_LASER, player->num);
-                gChargeTimers[player->num] = 0;
-                gControllerRumbleTimers[player->num] = 5;
-                return true;
             }
+            CALL_EVENT(PlayerActionPostShootChargedEvent);
         }
         gChargeTimers[player->num] = 0;
     }
@@ -3413,18 +3427,21 @@ bool Player_UpdateLockOn(Player* player) {
         }
         if (hasBombTarget && (gBombCount[player->num] != 0) &&
             (gPlayerShots[ARRAY_COUNT(gPlayerShots) - 1].obj.status == SHOT_FREE)) {
-            gBombCount[player->num]--;
-            if (player->form == FORM_ARWING) {
-                Player_SetupArwingShot(player, &gPlayerShots[ARRAY_COUNT(gPlayerShots) - 1], 0.0f, 0.0f,
-                                       PLAYERSHOT_LOCK_ON, 60.0f);
-            } else {
-                Player_SetupTankShot(player, &gPlayerShots[ARRAY_COUNT(gPlayerShots) - 1], PLAYERSHOT_LOCK_ON, 60.0f);
+            CALL_CANCELLABLE_EVENT(PlayerActionPreBombEvent){
+                gBombCount[player->num]--;
+                if (player->form == FORM_ARWING) {
+                    Player_SetupArwingShot(player, &gPlayerShots[ARRAY_COUNT(gPlayerShots) - 1], 0.0f, 0.0f,
+                                        PLAYERSHOT_LOCK_ON, 60.0f);
+                } else {
+                    Player_SetupTankShot(player, &gPlayerShots[ARRAY_COUNT(gPlayerShots) - 1], PLAYERSHOT_LOCK_ON, 60.0f);
+                }
+                gPlayerShots[ARRAY_COUNT(gPlayerShots) - 1].unk_48 = 30.0f;
+                gPlayerShots[ARRAY_COUNT(gPlayerShots) - 1].unk_60 = 0;
+                Audio_InitBombSfx(player->num, 1);
+                Audio_PlayBombFlightSfx(player->num, gPlayerShots[ARRAY_COUNT(gPlayerShots) - 1].sfxSource);
+                return true;
             }
-            gPlayerShots[ARRAY_COUNT(gPlayerShots) - 1].unk_48 = 30.0f;
-            gPlayerShots[ARRAY_COUNT(gPlayerShots) - 1].unk_60 = 0;
-            Audio_InitBombSfx(player->num, 1);
-            Audio_PlayBombFlightSfx(player->num, gPlayerShots[ARRAY_COUNT(gPlayerShots) - 1].sfxSource);
-            return true;
+            CALL_EVENT(PlayerActionPostBombEvent);
         }
     }
     return false;

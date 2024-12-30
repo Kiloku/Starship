@@ -10,10 +10,10 @@ DEFINE_EVENT(PlayerActionBrakeEvent);
 DEFINE_EVENT(PlayerActionPreShootEvent, LaserStrength laser;);
 DEFINE_EVENT(PlayerActionPostShootEvent, LaserStrength laser;);
 
-DEFINE_EVENT(PlayerActionPreShootChargedEvent); //TODO
+DEFINE_EVENT(PlayerActionPreShootChargedEvent);
 DEFINE_EVENT(PlayerActionPostShootChargedEvent);
 
-DEFINE_EVENT(PlayerActionPreBombEvent); //TODO
+DEFINE_EVENT(PlayerActionPreBombEvent);
 DEFINE_EVENT(PlayerActionPostBombEvent);
 
 typedef enum { //TODO this and all below
