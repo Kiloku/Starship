@@ -157,12 +157,29 @@ void OnGameUpdatePost(IEvent* event) {
     }
 }
 
+void OnItemDrop(ItemDropEvent* event) {
+    if (CVarGetInteger("gReplaceLaserPickups", 0) == 1) {
+        if (event->item->obj.id == OBJ_ITEM_LASERS && !gVersusMode && gLaserStrength[0] == LASERS_HYPER) { 
+            event->event.cancelled = true;
+            if (gPlayer->form != FORM_BLUE_MARINE) { //Bomb pickups don't make sense in the blue marine.
+                event->item->obj.id = OBJ_ITEM_BOMB;
+            } else {
+                event->item->obj.id = OBJ_ITEM_SILVER_STAR;
+            }
+            Object_SetInfo(&event->item->info, event->item->obj.id);
+        }
+    }
+}
+
 void PortEnhancements_Init() {
     PortEnhancements_Register();
 
     // Register event listeners
     REGISTER_LISTENER(DisplayPreUpdateEvent, OnDisplayUpdatePre, EVENT_PRIORITY_NORMAL);
     REGISTER_LISTENER(GamePostUpdateEvent, OnGameUpdatePost, EVENT_PRIORITY_NORMAL);
+
+    // Register Item event listeners
+    REGISTER_LISTENER(ItemDropEvent, OnItemDrop, EVENT_PRIORITY_NORMAL);
 }
 
 void PortEnhancements_Register() {

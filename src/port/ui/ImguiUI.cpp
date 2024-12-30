@@ -484,6 +484,7 @@ void DrawCheatsMenu() {
         UIWidgets::CVarCheckbox("Infinite Bombs", "gInfiniteBombs");
         UIWidgets::CVarCheckbox("Infinite Boost/Brake", "gInfiniteBoost");
         UIWidgets::CVarCheckbox("Hyper Laser", "gHyperLaser");
+        UIWidgets::CVarCheckbox("Replace redundant laser pickups", "gReplaceLaserPickups");
         UIWidgets::CVarCheckbox("Self destruct button", "gHit64SelfDestruct", {
                 .tooltip = "Press Down on the D-PAD to instantly self destruct."
             });
