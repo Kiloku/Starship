@@ -3080,7 +3080,9 @@ void Player_SetupArwingShot(Player* player, PlayerShot* shot, f32 arg2, f32 arg3
             shot->timer = 30;
         }
     }
-    shot->timer *= CVarGetInteger("gLaserRangeMult", 100)/100.0f;  //This will work better with hooks, but we'll need to change PostShoot to have a ref to the Shot, not just the strength.
+    if (shot->obj.id != PLAYERSHOT_BOMB) { //Bombs behave weirdly with this. They lose the "explode on press B again" functionality.
+        shot->timer *= CVarGetInteger("gLaserRangeMult", 100)/100.0f;  //This will work better with hooks, but we'll need to change PostShoot to have a ref to the Shot, not just the strength.
+    }
     shot->sourceId = player->num;
 }
 
