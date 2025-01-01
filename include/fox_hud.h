@@ -46,6 +46,7 @@ typedef enum RadarMarkTypes {
     /* 103 */ RADARMARK_SUPPIES,
     /* 200 */ RADARMARK_ITEM_1 = 200,
     /* 201 */ RADARMARK_ITEM_2,
+    /* 300 */ RADARMARK_ALLY = 300,
     /* 999 */ RADARMARK_NOTHING = 999
 } RadarMarkTypes;
 

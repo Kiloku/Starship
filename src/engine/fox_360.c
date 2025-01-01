@@ -1552,7 +1552,7 @@ void ActorAllRange_Update(ActorAllRange* this) {
             spE8 = fabsf(this->fwork[6] - this->obj.pos.z);
             sp10F = 0xB;
 
-            if (this->aiType == AI360_FALCO) {
+            if (this->aiType == AI360_FALCO || ((this->animFrame != 2) && (this->animFrame == 3))) {
                 spF0 = 0.5f;
             } else if ((this->animFrame != 2) && (this->animFrame == 3)) {
                 spF0 = 0.5f;

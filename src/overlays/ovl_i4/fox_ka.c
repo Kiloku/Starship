@@ -2619,6 +2619,10 @@ void Katina_EnemyUpdate(ActorAllRange* this) {
     radarMark->pos.z = this->obj.pos.z;
     radarMark->yRot = this->rot_0F4.y + 180.0f;
 
+    if (this->animFrame == 1){
+        radarMark->type = RADARMARK_ALLY;
+    }
+
     if (this->iwork[KA_ACTOR_IWORK_8] != 0) {
         this->iwork[KA_ACTOR_IWORK_8]--;
     }

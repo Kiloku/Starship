@@ -1737,12 +1737,20 @@ void HUD_RadarMark_Item_Draw(void) {
     gSPDisplayList(gMasterDisp++, aOrbDL);
 }
 
+void HUD_RadarMark_Ally_Draw(void) {
+    RCP_SetupDL(&gMasterDisp, SETUPDL_62);
+    gDPSetPrimColor(gMasterDisp++, 0, 0, 128, 255, 128, 255);
+    Matrix_Scale(gGfxMatrix, 20.0f, 20.0f, 1.0f, MTXF_APPLY);
+    Matrix_SetGfxMtx(&gMasterDisp);
+    gSPDisplayList(gMasterDisp++, aRadarMarkArwingDL);
+}
+
 void HUD_RadarMark_Enemy_Draw(void) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_62);
-    gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
-    Matrix_Scale(gGfxMatrix, 11.0f, 11.0f, 1.0f, MTXF_APPLY);
+    gDPSetPrimColor(gMasterDisp++, 0, 0, 128, 0, 0, 255);
+    Matrix_Scale(gGfxMatrix, 20.0f, 20.0f, 1.0f, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
-    gSPDisplayList(gMasterDisp++, aOrbDL);
+    gSPDisplayList(gMasterDisp++, aStarWolfRadarMarkDL);
 }
 
 void HUD_RadarMark_Boss_Draw(void) {
@@ -1922,6 +1930,10 @@ void HUD_RadarMark_Draw(s32 type) {
         case RADARMARK_ITEM_1:
         case RADARMARK_ITEM_2:
             HUD_RadarMark_Item_Draw();
+            break;
+
+        case RADARMARK_ALLY:
+            HUD_RadarMark_Ally_Draw();
             break;
 
         case RADARMARK_NOTHING:
