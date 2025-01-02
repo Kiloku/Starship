@@ -482,7 +482,6 @@ void DrawCosmeticsMenu(){
     
     if (UIWidgets::BeginMenu("Cosmetics")) {
 
-        ImGui::Text("Dummy");
         ImGui::Dummy(ImVec2(150.0f, 0.0f));
         UIWidgets::WindowButton("Cosmetic Editor", "gCosmeticsWindow", GameUI::mCosmeticEditorWindow, {
             .tooltip = "Shows the cosmetic editor"
