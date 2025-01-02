@@ -60,7 +60,7 @@ Color_RGBA8 CosmeticEditor_getChangedColor(u8 r, u8 g, u8 b, u8 a, const char* c
 
 extern "C" void gDPSetPrimColorWithOverride(Gfx* pkt, u8 m, u8 l, u8 r, u8 g, u8 b, u8 a, const char* cvar) {
     Color_RGBA8 setColor = CosmeticEditor_getChangedColor(r, g, b, a, cvar);
-    gDPSetPrimColor(pkt, m, l, setColor.r, setColor.g, setColor.b, a);
+    gDPSetPrimColor(pkt, m, l, setColor.r, setColor.g, setColor.b, setColor.a);
 }
 
 void CosmeticEditorRandomizeElement(CosmeticEditorElement id) {
@@ -158,13 +158,13 @@ void CosmeticEditorDrawColorTab() {
             ImGui::TableNextColumn();
             CopyFloatArray(entry.id, currentColor, CVarGetInteger(entry.colorChangedCvar, false));
             bool colorChanged =
-                ImGui::ColorEdit3("Color", currentColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+                ImGui::ColorEdit4("Color", currentColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
             if (colorChanged) {
                 Color_RGBA8 colorSelected;
                 colorSelected.r = static_cast<uint8_t>(currentColor[0] * 255.0f);
                 colorSelected.g = static_cast<uint8_t>(currentColor[1] * 255.0f);
                 colorSelected.b = static_cast<uint8_t>(currentColor[2] * 255.0f);
-                colorSelected.a = static_cast<uint8_t>(255);
+                colorSelected.a = static_cast<uint8_t>(currentColor[3] * 255.0f);
 
                 CVarSetColor(entry.colorCvar, colorSelected);
                 CVarSetInteger(entry.colorChangedCvar, true);
