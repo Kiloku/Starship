@@ -109,6 +109,13 @@ void CosmeticEditorResetAllElements() {
     }
 }
 
+void CosmeticEditorCalculateAllDerived() {
+    for (auto& element : cosmeticEditorElements) {
+        if (element.derivedFrom != -1){
+            CosmeticEditorCalculateDerivedElement(element);
+        }
+    }
+}
 void CosmeticEditorDrawColorTab() {
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.0f, 1.0f, 1.0f, 0.0f));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.0f, 1.0f, 1.0f, 0.2f));
@@ -117,6 +124,8 @@ void CosmeticEditorDrawColorTab() {
     resetAllText += " All";
     std::string randomAllText = ICON_FA_RECYCLE;
     randomAllText += " All";
+    std::string calculateAllText = ICON_FA_ARROW_DOWN;
+    calculateAllText += " All";
     if (ImGui::Button(resetAllText.c_str())) {
         CosmeticEditorResetAllElements();
     }
@@ -124,6 +133,10 @@ void CosmeticEditorDrawColorTab() {
     ImGui::SameLine();
     if (ImGui::Button(randomAllText.c_str())) {
         CosmeticEditorRandomizeAllElements();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(calculateAllText.c_str())) {
+        CosmeticEditorCalculateAllDerived();
     }
     UIWidgets::Tooltip("Randomizes All Elements");
     for (auto& parent : cosmeticEditorParentElements) {
