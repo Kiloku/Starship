@@ -19,7 +19,7 @@ void gDPSetPrimColorWithOverride(Gfx* pkt, u8 m, u8 l, u8 r, u8 g, u8 b, u8 a, c
 
 Color_RGBA8 CosmeticEditor_getChangedColor(u8 r, u8 g, u8 b, u8 a, const char* cvar);
 
-typedef enum {
+typedef enum CosmeticEditorElementID{
     COSMETIC_ELEMENT_FOX_RADAR_COLOR,
     COSMETIC_ELEMENT_FOX_RADAR_COLOR_DARK,
     COSMETIC_ELEMENT_FALCO_RADAR_COLOR,
