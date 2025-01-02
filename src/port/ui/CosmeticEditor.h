@@ -40,10 +40,10 @@ typedef struct {
     CosmeticEditorElementID id;
     const char* parentName;
     const char* name;
-    int32_t defaultR;
-    int32_t defaultG;
-    int32_t defaultB;
-    int32_t defaultA;
+    uint8_t defaultR;
+    uint8_t defaultG;
+    uint8_t defaultB;
+    uint8_t defaultA;
     CosmeticEditorElementID derivedFrom;
     float multiplier;
     const char* colorCvar;
@@ -52,13 +52,13 @@ typedef struct {
 
 #define COSMETIC_EDITOR_ELEMENT(id, parentName, name, cvar, defaultR, defaultG, defaultB, defaultA)     \
     {                                                                                                   \
-        id, parentName, name, defaultR, defaultG, defaultB, defaultA, -1, 0.0f, "gCosmetic." cvar ".Color",   \
+        (CosmeticEditorElementID)id, parentName, name, defaultR, defaultG, defaultB, defaultA, -1, 0.0f, "gCosmetic." cvar ".Color",   \
             "gCosmetic." cvar ".Changed"                                                                \
     }
 
 #define COSMETIC_EDITOR_DERIVED_ELEMENT(id, parentName, name, cvar, defaultR, defaultG, defaultB, defaultA, derivedFrom, multiplier)\
     {                                                                                                                               \
-        id, parentName, name, defaultR, defaultG, defaultB, defaultA, derivedFrom, multiplier, "gCosmetic." cvar ".Color",          \
+        (CosmeticEditorElementID)id, parentName, name, defaultR, defaultG, defaultB, defaultA, derivedFrom, multiplier, "gCosmetic." cvar ".Color",          \
             "gCosmetic." cvar ".Changed"                                                                                            \
     }
 #ifdef __cplusplus
