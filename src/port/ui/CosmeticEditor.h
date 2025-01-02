@@ -20,6 +20,7 @@ void gDPSetPrimColorWithOverride(Gfx* pkt, u8 m, u8 l, u8 r, u8 g, u8 b, u8 a, c
 Color_RGBA8 CosmeticEditor_getChangedColor(u8 r, u8 g, u8 b, u8 a, const char* cvar);
 
 typedef enum CosmeticEditorElementID{
+    COSMETIC_ELEMENT_NONE = -1,
     COSMETIC_ELEMENT_FOX_RADAR_COLOR,
     COSMETIC_ELEMENT_FOX_RADAR_COLOR_DARK,
     COSMETIC_ELEMENT_FALCO_RADAR_COLOR,
@@ -52,7 +53,7 @@ typedef struct {
 
 #define COSMETIC_EDITOR_ELEMENT(id, parentName, name, cvar, defaultR, defaultG, defaultB, defaultA)     \
     {                                                                                                   \
-        (CosmeticEditorElementID)id, parentName, name, defaultR, defaultG, defaultB, defaultA, -1, 0.0f, "gCosmetic." cvar ".Color",   \
+        (CosmeticEditorElementID)id, parentName, name, defaultR, defaultG, defaultB, defaultA, COSMETIC_ELEMENT_NONE, 0.0f, "gCosmetic." cvar ".Color",   \
             "gCosmetic." cvar ".Changed"                                                                \
     }
 

@@ -79,7 +79,7 @@ bool CosmeticEditorCompareColors(Color_RGBA8 first, Color_RGBA8 second){
 }
 
 void CosmeticEditorCalculateDerivedElement(CosmeticEditorElement entry) {
-    if (entry.derivedFrom == -1) {
+    if (entry.derivedFrom == COSMETIC_ELEMENT_NONE) {
         return;
     }
     CosmeticEditorElement originalEntry = cosmeticEditorElements[entry.derivedFrom];
@@ -111,7 +111,7 @@ void CosmeticEditorResetAllElements() {
 
 void CosmeticEditorCalculateAllDerived() {
     for (auto& element : cosmeticEditorElements) {
-        if (element.derivedFrom != -1){
+        if (element.derivedFrom != COSMETIC_ELEMENT_NONE){
             CosmeticEditorCalculateDerivedElement(element);
         }
     }
@@ -182,7 +182,7 @@ void CosmeticEditorDrawColorTab() {
             ImGui::TextColored(CVarGetInteger(entry.colorChangedCvar, 0) ? UIWidgets::Colors::LightGreen
                                                                          : UIWidgets::Colors::Gray,
                                CVarGetInteger(entry.colorChangedCvar, 0) ? "Modified" : "Default");
-            if (entry.derivedFrom != -1) {
+            if (entry.derivedFrom != COSMETIC_ELEMENT_NONE) {
                 ImGui::SameLine();
                 if (ImGui::Button(ICON_FA_ARROW_DOWN, ImVec2(27.0f, 27.0f))) {
                     CosmeticEditorCalculateDerivedElement(entry);
