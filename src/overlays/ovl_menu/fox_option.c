@@ -971,7 +971,7 @@ void Option_MainMenu_Update(void) {
             }
 
             if (gControllerPress[gMainController].button & (A_BUTTON | START_BUTTON)) {
-#if DEBUG_VERSUS == 0
+#if DEBUG_VERSUS == 0 && false
                 if (sMainMenuCursor == 2) {
                     break;
                 }

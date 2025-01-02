@@ -1740,17 +1740,17 @@ void HUD_RadarMark_Item_Draw(void) {
 void HUD_RadarMark_Ally_Draw(void) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_62);
     gDPSetPrimColor(gMasterDisp++, 0, 0, 128, 255, 128, 255);
-    Matrix_Scale(gGfxMatrix, 20.0f, 20.0f, 1.0f, MTXF_APPLY);
+    Matrix_Scale(gGfxMatrix, 16.0f, 16.0f, 1.0f, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
-    gSPDisplayList(gMasterDisp++, aRadarMarkArwingDL);
+    gSPDisplayList(gMasterDisp++, aKattRadarMarkDL);
 }
 
 void HUD_RadarMark_Enemy_Draw(void) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_62);
     gDPSetPrimColor(gMasterDisp++, 0, 0, 128, 0, 0, 255);
-    Matrix_Scale(gGfxMatrix, 20.0f, 20.0f, 1.0f, MTXF_APPLY);
+    Matrix_Scale(gGfxMatrix, 16.0f, 16.0f, 1.0f, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
-    gSPDisplayList(gMasterDisp++, aStarWolfRadarMarkDL);
+    gSPDisplayList(gMasterDisp++, aKattRadarMarkDL);
 }
 
 void HUD_RadarMark_Boss_Draw(void) {
@@ -1815,6 +1815,14 @@ void HUD_RadarMark_Katt_Draw(void) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_62);
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 92, 92, 255);
     Matrix_Scale(gGfxMatrix, 54.0f, 54.0f, 1.0f, MTXF_APPLY);
+    Matrix_SetGfxMtx(&gMasterDisp);
+    gSPDisplayList(gMasterDisp++, aKattRadarMarkDL);
+}
+
+void HUD_RadarMark_Bill_Draw(void) {
+    RCP_SetupDL(&gMasterDisp, SETUPDL_62);
+    gDPSetPrimColor(gMasterDisp++, 0, 0, 112, 160, 0, 255);
+    Matrix_Scale(gGfxMatrix, 48.0f, 48.0f, 1.0f, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
     gSPDisplayList(gMasterDisp++, aKattRadarMarkDL);
 }
@@ -1905,6 +1913,9 @@ void HUD_RadarMark_Draw(s32 type) {
 
         case RADARMARK_KATT:
             HUD_RadarMark_Katt_Draw();
+            break;
+        case RADARMARK_BILL:
+            HUD_RadarMark_Bill_Draw();
             break;
 
         case RADARMARK_MISSILE:

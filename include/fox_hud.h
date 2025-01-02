@@ -40,6 +40,7 @@ typedef enum RadarMarkTypes {
     /*   6 */ RADARMARK_PIGMA,
     /*   7 */ RADARMARK_ANDREW,
     /*   8 */ RADARMARK_KATT,
+    /*   9 */ RADARMARK_BILL,
     /* 100 */ RADARMARK_MISSILE = 100,
     /* 101 */ RADARMARK_KA_SAUCERER,
     /* 102 */ RADARMARK_BOSS,
