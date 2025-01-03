@@ -37,21 +37,16 @@
 #include <VertexFactory.h>
 #include "audio/GameAudio.h"
 #include "port/patches/DisplayListPatch.h"
-// #include "sf64audio_provisional.h"
+#include "port/mods/PortEnhancements.h"
 
 #include <Fast3D/gfx_pc.h>
-#include <Fast3D/gfx_rendering_api.h>
 #include <SDL2/SDL.h>
-#include <fstream>
 #include <filesystem>
 
 namespace fs = std::filesystem;
 
-// extern "C" AudioBufferParameters gAudioBufferParams;
-
-#include <utility>
-
 extern "C" {
+bool prevAltAssets = false;
 float gInterpolationStep = 0.0f;
 #include <sf64thread.h>
 #include <macros.h>
@@ -182,6 +177,9 @@ GameEngine::GameEngine() {
 
     loader->RegisterResourceFactory(std::make_shared<SF64::ResourceFactoryBinarySoundFontV0>(), RESOURCE_FORMAT_BINARY,
                                     "SoundFont", static_cast<uint32_t>(SF64::ResourceType::SoundFont), 0);
+
+    prevAltAssets = CVarGetInteger("gEnhancements.Mods.AlternateAssets", 0);
+    context->GetResourceManager()->SetAltAssetsEnabled(prevAltAssets);
 }
 
 void GameEngine::Create() {
@@ -192,14 +190,14 @@ void GameEngine::Create() {
 #if defined(__SWITCH__) || defined(__WIIU__)
     CVarRegisterInteger("gControlNav", 1); // always enable controller nav on switch/wii u
 #endif
+    PortEnhancements_Init();
 }
 
 void GameEngine::Destroy() {
+    PortEnhancements_Exit();
     AudioExit();
     free(MemoryPool.memory);
 }
-
-bool ShouldClearTextureCacheAtEndOfFrame = false;
 
 void GameEngine::StartFrame() const {
     using Ship::KbScancode;
@@ -209,8 +207,7 @@ void GameEngine::StartFrame() const {
     switch (dwScancode) {
         case KbScancode::LUS_KB_TAB: {
             // Toggle HD Assets
-            CVarSetInteger("gAltAssets", !CVarGetInteger("gAltAssets", 0));
-            ShouldClearTextureCacheAtEndOfFrame = true;
+            CVarSetInteger("gEnhancements.Mods.AlternateAssets", !CVarGetInteger("gEnhancements.Mods.AlternateAssets", 0));
             break;
         }
         default:
@@ -332,9 +329,11 @@ void GameEngine::RunCommands(Gfx* Commands, const std::vector<std::unordered_map
         gfx_end_frame();
     }
 
-    if (ShouldClearTextureCacheAtEndOfFrame) {
+    bool curAltAssets = CVarGetInteger("gEnhancements.Mods.AlternateAssets", 0);
+    if (prevAltAssets != curAltAssets) {
+        prevAltAssets = curAltAssets;
+        Ship::Context::GetInstance()->GetResourceManager()->SetAltAssetsEnabled(curAltAssets);
         gfx_texture_cache_clear();
-        ShouldClearTextureCacheAtEndOfFrame = false;
     }
 }
 

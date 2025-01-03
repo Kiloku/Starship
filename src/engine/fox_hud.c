@@ -3,6 +3,7 @@
 #include "prevent_bss_reordering.h"
 #include "port/interpolation/FrameInterpolation.h"
 #include "port/ui/CosmeticEditor.h"
+#include "port/hooks/Events.h"
 
 Vec3f D_801616A0;
 Vec3f D_801616B0;
@@ -3624,27 +3625,40 @@ void HUD_VS_Radar(void) {
 }
 
 void HUD_SinglePlayer(void) {
-    if (gPlayState != PLAY_PAUSE) {
-        HUD_Radar();
+    CALL_CANCELLABLE_EVENT(DrawRadarHUDEvent){
+        if (gPlayState != PLAY_PAUSE) {
+            HUD_Radar();
+        }
     }
 
     RCP_SetupDL_36();
     if ((gLevelMode != LEVELMODE_TURRET) && (D_hud_80161708 != 0)) {
-        HUD_BoostGauge_Draw(246.0f, 28.0f);
-        HUD_BombCounter_Draw(250.0f, 38.0f);
-    }
-
-    HUD_IncomingMsg();
-
-    if (D_hud_80161708 != 0) {
-        HUD_Shield_GoldRings_Score(24.0f, 30.0f);
-        if (gCurrentLevel != LEVEL_TRAINING) {
-            HUD_LivesCount2_Draw(248.0f, 11.0f, gLifeCount[gPlayerNum]);
+        CALL_CANCELLABLE_EVENT(DrawBoostGaugeHUDEvent) {
+            HUD_BoostGauge_Draw(246.0f, 28.0f);
+        }
+        CALL_CANCELLABLE_EVENT(DrawBombCounterHUDEvent) {
+            HUD_BombCounter_Draw(250.0f, 38.0f);
         }
     }
 
-    if (gCurrentLevel == LEVEL_TRAINING) {
-        Training_RingPassCount_Draw();
+    CALL_CANCELLABLE_EVENT(DrawIncomingMsgHUDEvent) {
+        HUD_IncomingMsg();
+    }
+
+    if (D_hud_80161708 != 0) {
+        CALL_CANCELLABLE_EVENT(DrawGoldRingsHUDEvent) {
+            HUD_Shield_GoldRings_Score(24.0f, 30.0f);
+        }
+        CALL_CANCELLABLE_EVENT(DrawLivesCounterHUDEvent) {
+            if (gCurrentLevel != LEVEL_TRAINING) {
+                HUD_LivesCount2_Draw(248.0f, 11.0f, gLifeCount[gPlayerNum]);
+            }
+        }
+    }
+    CALL_CANCELLABLE_EVENT(DrawTrainingRingPassCountHUDEvent) {
+        if (gCurrentLevel == LEVEL_TRAINING) {
+            Training_RingPassCount_Draw();
+        }
     }
 }
 
@@ -3652,6 +3666,11 @@ void HUD_Draw(void) {
     s32 i;
     s32 goldRings;
     bool medalStatus;
+    CALL_EVENT(DrawGlobalHUDPreEvent);
+    if (DrawGlobalHUDPreEvent_.event.cancelled){
+        return;
+    }
+
     gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
 
     if (D_hud_80161730 == 0) {
@@ -3762,6 +3781,7 @@ void HUD_Draw(void) {
     HUD_RadioDamage();
     HUD_PauseScreen_Update();
     gDPSetTextureFilter(gMasterDisp++, G_TF_BILERP);
+    CALL_EVENT(DrawGlobalHUDPostEvent);
 }
 
 void FoBase_Draw(Boss* this) {
