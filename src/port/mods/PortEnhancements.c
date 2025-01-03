@@ -157,12 +157,17 @@ void OnGameUpdatePost(IEvent* event) {
     }
 }
 
+void OnPlayerShootPost(PlayerActionPostShootEvent* event){
+    event->shot->timer *= CVarGetInteger("gLaserRangeMult", 100)/100.0f;
+}
+
 void PortEnhancements_Init() {
     PortEnhancements_Register();
 
     // Register event listeners
     REGISTER_LISTENER(DisplayPreUpdateEvent, OnDisplayUpdatePre, EVENT_PRIORITY_NORMAL);
     REGISTER_LISTENER(GamePostUpdateEvent, OnGameUpdatePost, EVENT_PRIORITY_NORMAL);
+    REGISTER_LISTENER(PlayerActionPostShootEvent, OnPlayerShootPost, EVENT_PRIORITY_NORMAL);
 }
 
 void PortEnhancements_Register() {

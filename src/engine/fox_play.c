@@ -3081,9 +3081,7 @@ void Player_SetupArwingShot(Player* player, PlayerShot* shot, f32 arg2, f32 arg3
             shot->timer = 30;
         }
     }
-    if (shot->obj.id != PLAYERSHOT_BOMB) { //Bombs behave weirdly with this. They lose the "explode on press B again" functionality.
-        shot->timer *= CVarGetInteger("gLaserRangeMult", 100)/100.0f;  //This will work better with hooks, but we'll need to change PostShoot to have a ref to the Shot, not just the strength.
-    }
+
     shot->sourceId = player->num;
 }
 
@@ -3143,7 +3141,6 @@ void Player_SetupTankShot(Player* player, PlayerShot* shot, PlayerShotId shotId,
         shot->timer = 30;
         shot->vec_2C.y = player->rot.y + player->yRot_114;
     }
-    shot->timer *= CVarGetInteger("gLaserRangeMult", 100)/100.0f; //This will work better with hooks, but we'll need to change PostShoot to have a ref to the Shot, not just the strength.
 }
 
 void Player_TankCannon(Player* player) {
@@ -3160,7 +3157,7 @@ void Player_TankCannon(Player* player) {
         }
     }
     if (!PlayerActionPreShootEvent_.event.cancelled){
-        CALL_EVENT(PlayerActionPostShootEvent, player, gLaserStrength[gPlayerNum]);
+        CALL_EVENT(PlayerActionPostShootEvent, player, &gPlayerShots[i]);
     }
 }
 
@@ -3209,7 +3206,7 @@ void Player_ArwingLaser(Player* player) {
             }
             break;
     }
-    CALL_EVENT(PlayerActionPostShootEvent, player, laser);
+    CALL_EVENT(PlayerActionPostShootEvent, player, &gPlayerShots[i]);
 }
 
 void Player_SmartBomb(Player* player) {
