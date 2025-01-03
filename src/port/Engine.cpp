@@ -1,6 +1,7 @@
 #include "Engine.h"
 #include "ui/ImguiUI.h"
 #include "StringHelper.h"
+
 #include "libultraship/src/Context.h"
 #include "resource/type/ResourceType.h"
 #include "resource/importers/AnimFactory.h"
@@ -36,24 +37,20 @@
 #include <VertexFactory.h>
 #include "audio/GameAudio.h"
 #include "port/patches/DisplayListPatch.h"
-// #include "sf64audio_provisional.h"
+#include "port/mods/PortEnhancements.h"
 
 #include <Fast3D/gfx_pc.h>
-#include <Fast3D/gfx_rendering_api.h>
 #include <SDL2/SDL.h>
-#include <fstream>
 #include <filesystem>
 
 namespace fs = std::filesystem;
 
-// extern "C" AudioBufferParameters gAudioBufferParams;
-
-#include <utility>
-
 extern "C" {
+bool prevAltAssets = false;
 float gInterpolationStep = 0.0f;
 #include <sf64thread.h>
 #include <macros.h>
+#include "sf64audio_provisional.h"
 void AudioThread_CreateNextAudioBuffer(int16_t* samples, uint32_t num_samples);
 }
 
@@ -82,11 +79,11 @@ GameEngine::GameEngine() {
         }
     }
 
-    this->context =
-        Ship::Context::CreateUninitializedInstance("Starship", "ship", "starship.cfg.json");
+    this->context = Ship::Context::CreateUninitializedInstance("Starship", "ship", "starship.cfg.json");
 
-    this->context->InitConfiguration(); // without this line InitConsoleVariables fails at Config::Reload()
-    this->context->InitConsoleVariables(); // without this line the controldeck constructor failes in ShipDeviceIndexMappingManager::UpdateControllerNamesFromConfig()
+    this->context->InitConfiguration();    // without this line InitConsoleVariables fails at Config::Reload()
+    this->context->InitConsoleVariables(); // without this line the controldeck constructor failes in
+                                           // ShipDeviceIndexMappingManager::UpdateControllerNamesFromConfig()
 
     auto controlDeck = std::make_shared<LUS::ControlDeck>();
 
@@ -95,9 +92,10 @@ GameEngine::GameEngine() {
 
     auto window = std::make_shared<Fast::Fast3dWindow>(std::vector<std::shared_ptr<Ship::GuiWindow>>({}));
 
-    this->context->Init(OTRFiles, {}, 3, { 44100, 1024*2, 2480*2 }, window, controlDeck);
+    this->context->Init(OTRFiles, {}, 3, { 32000, 1024 , 2480  }, window, controlDeck);
 
-    Ship::Context::GetInstance()->GetLogger()->set_level((spdlog::level::level_enum)CVarGetInteger("gDeveloperTools.LogLevel", 1));
+    Ship::Context::GetInstance()->GetLogger()->set_level(
+        (spdlog::level::level_enum) CVarGetInteger("gDeveloperTools.LogLevel", 1));
     Ship::Context::GetInstance()->GetLogger()->set_pattern("[%H:%M:%S.%e] [%s:%#] [%l] %v");
 
     auto loader = context->GetResourceManager()->GetResourceLoader();
@@ -139,11 +137,12 @@ GameEngine::GameEngine() {
 
     loader->RegisterResourceFactory(std::make_shared<Fast::ResourceFactoryBinaryVertexV0>(), RESOURCE_FORMAT_BINARY,
                                     "Vertex", static_cast<uint32_t>(Fast::ResourceType::Vertex), 0);
-    loader->RegisterResourceFactory(std::make_shared<Fast::ResourceFactoryXMLVertexV0>(), RESOURCE_FORMAT_XML,
-                                    "Vertex", static_cast<uint32_t>(Fast::ResourceType::Vertex), 0);
+    loader->RegisterResourceFactory(std::make_shared<Fast::ResourceFactoryXMLVertexV0>(), RESOURCE_FORMAT_XML, "Vertex",
+                                    static_cast<uint32_t>(Fast::ResourceType::Vertex), 0);
 
-    loader->RegisterResourceFactory(std::make_shared<Fast::ResourceFactoryBinaryDisplayListV0>(), RESOURCE_FORMAT_BINARY,
-                                    "DisplayList", static_cast<uint32_t>(Fast::ResourceType::DisplayList), 0);
+    loader->RegisterResourceFactory(std::make_shared<Fast::ResourceFactoryBinaryDisplayListV0>(),
+                                    RESOURCE_FORMAT_BINARY, "DisplayList",
+                                    static_cast<uint32_t>(Fast::ResourceType::DisplayList), 0);
     loader->RegisterResourceFactory(std::make_shared<Fast::ResourceFactoryXMLDisplayListV0>(), RESOURCE_FORMAT_XML,
                                     "DisplayList", static_cast<uint32_t>(Fast::ResourceType::DisplayList), 0);
 
@@ -178,6 +177,9 @@ GameEngine::GameEngine() {
 
     loader->RegisterResourceFactory(std::make_shared<SF64::ResourceFactoryBinarySoundFontV0>(), RESOURCE_FORMAT_BINARY,
                                     "SoundFont", static_cast<uint32_t>(SF64::ResourceType::SoundFont), 0);
+
+    prevAltAssets = CVarGetInteger("gEnhancements.Mods.AlternateAssets", 0);
+    context->GetResourceManager()->SetAltAssetsEnabled(prevAltAssets);
 }
 
 void GameEngine::Create() {
@@ -188,14 +190,14 @@ void GameEngine::Create() {
 #if defined(__SWITCH__) || defined(__WIIU__)
     CVarRegisterInteger("gControlNav", 1); // always enable controller nav on switch/wii u
 #endif
+    PortEnhancements_Init();
 }
 
 void GameEngine::Destroy() {
+    PortEnhancements_Exit();
     AudioExit();
     free(MemoryPool.memory);
 }
-
-bool ShouldClearTextureCacheAtEndOfFrame = false;
 
 void GameEngine::StartFrame() const {
     using Ship::KbScancode;
@@ -205,8 +207,7 @@ void GameEngine::StartFrame() const {
     switch (dwScancode) {
         case KbScancode::LUS_KB_TAB: {
             // Toggle HD Assets
-            CVarSetInteger("gAltAssets", !CVarGetInteger("gAltAssets", 0));
-            ShouldClearTextureCacheAtEndOfFrame = true;
+            CVarSetInteger("gEnhancements.Mods.AlternateAssets", !CVarGetInteger("gEnhancements.Mods.AlternateAssets", 0));
             break;
         }
         default:
@@ -215,14 +216,14 @@ void GameEngine::StartFrame() const {
     this->context->GetWindow()->StartFrame();
 }
 
-#if 1
+#if 0
 // Values for 44100 hz
 #define SAMPLES_HIGH 752
 #define SAMPLES_LOW 720
 #else
 // Values for 32000 hz
 #define SAMPLES_HIGH 560
-#define SAMPLES_LOW 544
+#define SAMPLES_LOW 528
 
 #endif
 
@@ -259,9 +260,7 @@ void GameEngine::HandleAudioThread() {
 
         std::unique_lock<std::mutex> Lock(audio.mutex);
         int samples_left = AudioPlayerBuffered();
-        u32 num_audio_samples = samples_left < AudioPlayerGetDesiredBuffered()
-                                    ? (((samples_high ) ) )
-                                    : (((samples_low)) );
+        u32 num_audio_samples = samples_left < AudioPlayerGetDesiredBuffered() ? (((samples_high))) : (((samples_low)));
 
         frames++;
 
@@ -330,9 +329,11 @@ void GameEngine::RunCommands(Gfx* Commands, const std::vector<std::unordered_map
         gfx_end_frame();
     }
 
-    if (ShouldClearTextureCacheAtEndOfFrame) {
+    bool curAltAssets = CVarGetInteger("gEnhancements.Mods.AlternateAssets", 0);
+    if (prevAltAssets != curAltAssets) {
+        prevAltAssets = curAltAssets;
+        Ship::Context::GetInstance()->GetResourceManager()->SetAltAssetsEnabled(curAltAssets);
         gfx_texture_cache_clear();
-        ShouldClearTextureCacheAtEndOfFrame = false;
     }
 }
 

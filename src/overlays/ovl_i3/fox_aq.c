@@ -7,6 +7,7 @@
 #include "global.h"
 #include "assets/ast_blue_marine.h"
 #include "assets/ast_aquas.h"
+#include "port/hooks/Events.h"
 // #include "prevent_bss_reordering2.h"
 
 const char D_i3_801C1A30[] = "プレイヤーのすべてをクリア \n"; // Clear of all players
@@ -380,7 +381,9 @@ void Aquas_SpawnItem(Vec3f* pos, ObjectId objId) {
             item->obj.pos.y = pos->y;
             item->obj.pos.z = pos->z;
             item->timer_4A = 2;
-            Object_SetInfo(&item->info, item->obj.id);
+            CALL_CANCELLABLE_EVENT(ItemDropEvent, item) {
+                Object_SetInfo(&item->info, item->obj.id);
+            }
             break;
         }
     }
@@ -803,7 +806,7 @@ void Aquas_801AA4BC(Player* player) {
 
 void Aquas_UpdateCamera(Player* player) {
     f32 stickX = +gInputPress->stick_x;
-    f32 stickY = -gInputPress->stick_y;
+    f32 stickY = -gInputPress->stick_y * (CVarGetInteger("gInvertYAxis", 0) == 1 ? -1 : 1);
     f32 zRot;
 
     if (player->state != PLAYERSTATE_ACTIVE) {
@@ -877,7 +880,8 @@ void Aquas_BlueMarineMove(Player* player) {
     Aquas_801A8E30();
 
     stickX = -gInputPress->stick_x;
-    stickY = +gInputPress->stick_y;
+
+    stickY = +gInputPress->stick_y * (CVarGetInteger("gInvertYAxis", 0) == 1 ? -1 : 1);
 
     gPlayerTurnStickMod = 0.68f;
 
@@ -1209,6 +1213,10 @@ void Aquas_BlueMarineTorpedo(Player* player) {
 
     for (i = 15, shot = &gPlayerShots[15]; i < ARRAY_COUNT(gPlayerShots); i++, shot++) {
         if (shot->obj.status == SHOT_FREE) {
+            CALL_EVENT(PlayerActionPreBombEvent, player)
+            if (PlayerActionPreBombEvent_.event.cancelled){
+                return;
+            }
             Player_SetupArwingShot(player, shot, 0.0f, 0.0f, PLAYERSHOT_LOCK_ON, 50.0f);
             AUDIO_PLAY_SFX(NA_SE_MAR_BOMB_SHOT, shot->sfxSource, 0);
             D_i3_801C4190[5] = i + 1;
@@ -1216,6 +1224,7 @@ void Aquas_BlueMarineTorpedo(Player* player) {
             D_i3_801C4458 = -100.0f;
             D_i3_801C445C = 0.1f;
             gLight3Brightness = 1.0f;
+            CALL_EVENT(PlayerActionPostBombEvent, player);
             break;
         }
     }
@@ -1223,17 +1232,22 @@ void Aquas_BlueMarineTorpedo(Player* player) {
 
 void Aquas_BlueMarineLaser(Player* player) {
     s32 i;
-
-    for (i = 0; i < 3; i++) {
-        if (gPlayerShots[i].obj.status == SHOT_FREE) {
-            Player_SetupArwingShot(player, &gPlayerShots[i], 0.0f, -10.0f, PLAYERSHOT_SINGLE_LASER, 120.0f);
-            if (gLaserStrength[gPlayerNum] == LASERS_SINGLE) {
-                AUDIO_PLAY_SFX(NA_SE_MAR_SHOT, gPlayerShots[i].sfxSource, 0);
-            } else {
-                AUDIO_PLAY_SFX(NA_SE_MAR_TWIN_LASER, gPlayerShots[i].sfxSource, 0);
+    
+    CALL_CANCELLABLE_EVENT(PlayerActionPreShootEvent, player, gLaserStrength[gPlayerNum]) {
+        for (i = 0; i < 3; i++) {
+            if (gPlayerShots[i].obj.status == SHOT_FREE) {
+                Player_SetupArwingShot(player, &gPlayerShots[i], 0.0f, -10.0f, PLAYERSHOT_SINGLE_LASER, 120.0f);
+                if (gLaserStrength[gPlayerNum] == LASERS_SINGLE) {
+                    AUDIO_PLAY_SFX(NA_SE_MAR_SHOT, gPlayerShots[i].sfxSource, 0);
+                } else {
+                    AUDIO_PLAY_SFX(NA_SE_MAR_TWIN_LASER, gPlayerShots[i].sfxSource, 0);
+                }
+                break;
             }
-            break;
         }
+    }
+    if (!PlayerActionPreShootEvent_.event.cancelled){
+        CALL_EVENT(PlayerActionPostShootEvent, player, gLaserStrength[gPlayerNum]);
     }
 }
 
@@ -1511,29 +1525,32 @@ void Aquas_BlueMarineBoost(Player* player) {
 
         if ((gBoostButton[player->num] & gInputHold->button) && (player->unk_230 == 0) &&
             (player->state != PLAYERSTATE_U_TURN) && (player->boostCooldown == 0)) {
-            if (player->boostMeter == 0) {
-                AUDIO_PLAY_SFX(NA_SE_MARINE_BOOST, player->sfxSource, 4);
-            }
-
-            if (!CVarGetInteger("gInfiniteBoost", 0)) {
-                player->boostMeter += 3.0f;
-                if (player->boostMeter > 90.0f) {
-                    player->boostMeter = 90.0f;
-                    player->boostCooldown = 1;
+            CALL_CANCELLABLE_EVENT(PlayerActionBoostEvent, player){
+                if (player->boostMeter == 0) {
+                    AUDIO_PLAY_SFX(NA_SE_MARINE_BOOST, player->sfxSource, 4);
                 }
+                
+
+                if (!CVarGetInteger("gInfiniteBoost", 0)) {
+                    player->boostMeter += 3.0f;
+                    if (player->boostMeter > 90.0f) {
+                        player->boostMeter = 90.0f;
+                        player->boostCooldown = 1;
+                    }
+                }
+
+                player->boostSpeed += 2.0f;
+                if (player->boostSpeed > 10.0f) {
+                    player->boostSpeed = 10.0f;
+                }
+
+                Math_SmoothStepToF(&D_i3_801C41B8[27], 10.0f, 0.1f, 2.0f, 0.00001f);
+                Math_SmoothStepToF(&player->camDist, -200.0f, 0.1f, D_i3_801C41B8[27], 0.00001f);
+
+                player->sfx.boost = 1;
+
+                Math_SmoothStepToF(&D_ctx_801779A8[0], 50.0f, 1.0f, 10.0f, 0.0f);
             }
-
-            player->boostSpeed += 2.0f;
-            if (player->boostSpeed > 10.0f) {
-                player->boostSpeed = 10.0f;
-            }
-
-            Math_SmoothStepToF(&D_i3_801C41B8[27], 10.0f, 0.1f, 2.0f, 0.00001f);
-            Math_SmoothStepToF(&player->camDist, -200.0f, 0.1f, D_i3_801C41B8[27], 0.00001f);
-
-            player->sfx.boost = 1;
-
-            Math_SmoothStepToF(&D_ctx_801779A8[0], 50.0f, 1.0f, 10.0f, 0.0f);
         } else {
             D_i3_801C41B8[27] = 0.0f;
 
@@ -1561,29 +1578,31 @@ void Aquas_BlueMarineBrake(Player* player) {
 
     if ((gInputHold->button & gBrakeButton[player->num]) && (player->unk_230 == 0) &&
         (player->state != PLAYERSTATE_U_TURN) && (player->boostCooldown == 0)) {
-        if (player->boostMeter == 0) {
-            AUDIO_PLAY_SFX(NA_SE_MARINE_BRAKE, player->sfxSource, 4);
-        }
-
-        if (!CVarGetInteger("gInfiniteBoost", 0)) {
-            player->boostMeter += 3.0f;
-            if (player->boostMeter > 90.0f) {
-                player->boostMeter = 90.0f;
-                player->boostCooldown = 1;
+        CALL_CANCELLABLE_EVENT(PlayerActionBrakeEvent, player){
+            if (player->boostMeter == 0) {
+                AUDIO_PLAY_SFX(NA_SE_MARINE_BRAKE, player->sfxSource, 4);
             }
+
+            if (!CVarGetInteger("gInfiniteBoost", 0)) {
+                player->boostMeter += 3.0f;
+                if (player->boostMeter > 90.0f) {
+                    player->boostMeter = 90.0f;
+                    player->boostCooldown = 1;
+                }
+            }
+
+            player->boostSpeed -= 1.0f;
+            if (player->boostSpeed < -20.0f) {
+                player->boostSpeed = -20.0f;
+            }
+
+            Math_SmoothStepToF(&D_i3_801C41B8[28], 10.0f, 1.0f, 2.0f, 0.00001f);
+            Math_SmoothStepToF(&player->camDist, 180.0f, 0.1f, D_i3_801C41B8[28], 0.0f);
+
+            player->sfx.brake = true;
+
+            Math_SmoothStepToF(&D_ctx_801779A8[0], 25.0f, 1.0f, 5.0f, 0.0f);
         }
-
-        player->boostSpeed -= 1.0f;
-        if (player->boostSpeed < -20.0f) {
-            player->boostSpeed = -20.0f;
-        }
-
-        Math_SmoothStepToF(&D_i3_801C41B8[28], 10.0f, 1.0f, 2.0f, 0.00001f);
-        Math_SmoothStepToF(&player->camDist, 180.0f, 0.1f, D_i3_801C41B8[28], 0.0f);
-
-        player->sfx.brake = true;
-
-        Math_SmoothStepToF(&D_ctx_801779A8[0], 25.0f, 1.0f, 5.0f, 0.0f);
     } else {
         if (player->boostMeter > 0.0f) {
             player->boostMeter -= 0.5f;
