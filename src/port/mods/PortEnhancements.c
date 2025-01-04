@@ -157,6 +157,33 @@ void OnGameUpdatePost(IEvent* event) {
     }
 }
 
+void RefillBoostMeter(Player* player) {
+    if (player->boostMeter > 1.0f){
+        player->boostMeter = 1.0f;
+    }
+}
+void OnPlayerUpdatePost(PlayerPostUpdateEvent* event) {
+    if (CVarGetInteger("gInfiniteBoost", 0) == 1) {
+        if (event->player->boostSpeed < 0.0f) {
+            event->player->boostSpeed += 0.5f;
+            if (event->player->boostSpeed > 0.0f) {
+                event->player->boostSpeed = 0.0f;
+            }
+        }
+    }
+}
+
+void OnPlayerBoost(PlayerActionBoostEvent* event) {
+    if (CVarGetInteger("gInfiniteBoost", 0) == 1){
+        RefillBoostMeter(event->player);
+    }
+}
+void OnPlayerBrake(PlayerActionBrakeEvent* event) {
+    if (CVarGetInteger("gInfiniteBoost", 0) == 1){
+        RefillBoostMeter(event->player);
+    }
+}
+
 void OnPlayerShootPost(PlayerActionPostShootEvent* event){
     event->shot->timer *= CVarGetInteger("gLaserRangeMult", 100)/100.0f;
 }
@@ -167,6 +194,11 @@ void PortEnhancements_Init() {
     // Register event listeners
     REGISTER_LISTENER(DisplayPreUpdateEvent, OnDisplayUpdatePre, EVENT_PRIORITY_NORMAL);
     REGISTER_LISTENER(GamePostUpdateEvent, OnGameUpdatePost, EVENT_PRIORITY_NORMAL);
+    REGISTER_LISTENER(PlayerPostUpdateEvent, OnPlayerUpdatePost, EVENT_PRIORITY_NORMAL);
+
+    // Register Action listeners
+    REGISTER_LISTENER(PlayerActionBoostEvent, OnPlayerBoost, EVENT_PRIORITY_NORMAL);
+    REGISTER_LISTENER(PlayerActionBrakeEvent, OnPlayerBrake, EVENT_PRIORITY_NORMAL);
     REGISTER_LISTENER(PlayerActionPostShootEvent, OnPlayerShootPost, EVENT_PRIORITY_NORMAL);
 }
 
@@ -177,6 +209,9 @@ void PortEnhancements_Register() {
 
     REGISTER_EVENT(GamePreUpdateEvent);
     REGISTER_EVENT(GamePostUpdateEvent);
+
+    REGISTER_EVENT(PlayerPreUpdateEvent);
+    REGISTER_EVENT(PlayerPostUpdateEvent);
 
     REGISTER_EVENT(DrawRadarHUDEvent);
     REGISTER_EVENT(DrawBoostGaugeHUDEvent);
