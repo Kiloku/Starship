@@ -5850,7 +5850,7 @@ void Player_Update(Player* player) {
     s32 i;
     Vec3f sp58[30];
     s32 pad;
-
+    CALL_EVENT(PlayerPreUpdateEvent, player);
     if (gVersusMode) {
         gInputHold = &gControllerHold[player->num];
         gInputPress = &gControllerPress[player->num];
@@ -6178,6 +6178,7 @@ void Player_Update(Player* player) {
         Math_SmoothStepToF(&player->unk_194, player->unk_190, 0.5f, 0.5f, 0.0f);
         player->unk_190 = 0.0f;
     }
+    CALL_EVENT(PlayerPostUpdateEvent, player);
 }
 
 void Camera_UpdateArwingOnRails(Player* player) {
