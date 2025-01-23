@@ -27,6 +27,8 @@ extern float gCurrentScreenWidth;
 extern float gCurrentScreenHeight;
 extern Vtx D_SO_6001C50_copy[];
 extern Vtx D_SO_6004500_copy[];
+extern Vtx D_ZO_6009ED0_copy[];
+extern Vtx D_ZO_600C780_copy[];
 
 UNK_TYPE D_800D2F50 = 0; // unused
 s32 sOverheadCam = 0;
@@ -154,9 +156,7 @@ void Play_UpdateDynaFloor(void) {
 
         Matrix_MultVec3fNoTranslate(gCalcMatrix, &spC4, &spB8);
 
-        if (gCurrentLevel == LEVEL_SOLAR) {
-            spB4[*spB0].n.n[0] = spB8.x;
-        }
+        spB4[*spB0].n.n[0] = spB8.x;
         spB4[*spB0].n.n[1] = spB8.y;
         spB4[*spB0].n.n[2] = spB8.z;
     }
@@ -182,7 +182,7 @@ void Play_UpdateDynaFloor(void) {
                 // spB4_copy[*spB0].n.n[2] *= -1.0f;
             }
             break;
-            /*
+            
             case LEVEL_ZONESS:
                 if ((gGameFrameCount % 2) != 0) {
                     spB4 = SEGMENTED_TO_VIRTUAL(D_ZO_6009ED0);
@@ -193,7 +193,7 @@ void Play_UpdateDynaFloor(void) {
                 }
                 spB0 = SEGMENTED_TO_VIRTUAL(D_ZO_602AC50);
 
-                memcpy2(spB4_copy, spB4, 17 * 17 * sizeof(Vtx));
+                memcpy(spB4_copy, spB4, 17 * 17 * sizeof(Vtx));
 
                 for (i = 0; (i < 17 * 17); i++, spB0++) {
                     // spB4_copy[*spB0] = spB4[*spB0];
@@ -202,7 +202,6 @@ void Play_UpdateDynaFloor(void) {
                     // spB4_copy[*spB0].n.n[2] *= -1.0f;
                 }
                 break;
-                */
     }
 }
 
@@ -3081,6 +3080,7 @@ void Player_SetupArwingShot(Player* player, PlayerShot* shot, f32 arg2, f32 arg3
             shot->timer = 30;
         }
     }
+
     shot->sourceId = player->num;
 }
 
@@ -3154,9 +3154,8 @@ void Player_TankCannon(Player* player) {
                 break;
             }
         }
-    }
-    if (!PlayerActionPreShootEvent_.event.cancelled){
-        CALL_EVENT(PlayerActionPostShootEvent, player, gLaserStrength[gPlayerNum]);
+
+        CALL_EVENT(PlayerActionPostShootEvent, player, &gPlayerShots[i]);
     }
 }
 
@@ -3169,10 +3168,7 @@ void Player_ArwingLaser(Player* player) {
         laser = LASERS_SINGLE;
     }
 
-    CALL_EVENT(PlayerActionPreShootEvent, player, laser);
-    if (PlayerActionPreShootEvent_.event.cancelled){
-        return;
-    }
+    CALL_CANCELLABLE_RETURN_EVENT(PlayerActionPreShootEvent, player, laser);
 
     switch (laser) {
         case LASERS_SINGLE:
@@ -3205,18 +3201,14 @@ void Player_ArwingLaser(Player* player) {
             }
             break;
     }
-    CALL_EVENT(PlayerActionPostShootEvent, player, laser);
+    CALL_EVENT(PlayerActionPostShootEvent, player, &gPlayerShots[i]);
 }
 
 void Player_SmartBomb(Player* player) {
 
     if ((gBombCount[player->num] != 0) && (gBombButton[player->num] & gInputPress->button) &&
         (gPlayerShots[ARRAY_COUNT(gPlayerShots) - 1].obj.status == SHOT_FREE)) {
-        CALL_EVENT(PlayerActionPreBombEvent, player);
-        if (PlayerActionPreBombEvent_.event.cancelled)
-        {
-            return;
-        }
+        CALL_CANCELLABLE_RETURN_EVENT(PlayerActionPreBombEvent, player);
 
         if (gVersusMode) {
             gBombCount[player->num] = 0;
@@ -3332,7 +3324,19 @@ bool Player_UpdateLockOn(Player* player) {
     bool hasBombTarget;
     s32 i;
 
-    if (gInputHold->button & A_BUTTON) {
+    bool rapidFire = CVarGetInteger("gRapidFire", 0) == 1;
+    bool charging;
+    if (rapidFire) {
+        if (CVarGetInteger("gLtoCharge", 0) == 1) {
+            charging = (gInputHold->button & L_TRIG) && !(gInputHold->button & A_BUTTON);
+        }
+        else {
+            charging = !(gInputHold->button & A_BUTTON);
+        }
+    } else {
+        charging = (gInputHold->button & A_BUTTON);
+    }
+    if (charging) {
         gChargeTimers[player->num]++;
         if (gChargeTimers[player->num] > 21) {
             gChargeTimers[player->num] = 21;
@@ -3363,7 +3367,7 @@ bool Player_UpdateLockOn(Player* player) {
         }
     }
 
-    if (gInputPress->button & A_BUTTON) {
+    if (gInputPress->button & (CVarGetInteger("gLtoCharge", 0) == 1 ? L_TRIG : A_BUTTON)) {
         for (i = 0; i < ARRAY_COUNT(gActors); i++) {
             if ((gActors[i].obj.status == OBJ_ACTIVE) && (gActors[i].lockOnTimers[player->num] != 0)) {
                 if ((gPlayerShots[14 - player->num].obj.status == SHOT_FREE) ||
@@ -3448,6 +3452,8 @@ bool Player_UpdateLockOn(Player* player) {
 }
 
 void Player_Shoot(Player* player) {
+    bool rapidFire = CVarGetInteger("gRapidFire", 0) == 1;
+
     switch (player->form) {
         case FORM_ARWING:
             if ((player->arwing.rightWingState <= WINGSTATE_BROKEN) ||
@@ -3459,6 +3465,11 @@ void Player_Shoot(Player* player) {
                     Math_SmoothStepToF(&player->arwing.laserGunsYpos, -10.0f, 1.0f, 0.5f, 0.0f);
                 } else {
                     Math_SmoothStepToF(&player->arwing.laserGunsYpos, 0.0f, 1.0f, 0.5f, 0.0f);
+                }
+                if (rapidFire && (gShootButton[player->num] & gInputHold->button)){
+                    if (player->shotTimer <= 0){
+                        player->shotTimer = 3;
+                    }
                 }
                 if (gShootButton[player->num] & gInputPress->button) {
                     Player_ArwingLaser(player);
@@ -3476,8 +3487,21 @@ void Player_Shoot(Player* player) {
 
         case FORM_LANDMASTER:
             if (!Player_UpdateLockOn(player)) {
-                if (gShootButton[player->num] & gInputPress->button) {
-                    Player_TankCannon(player);
+                if (rapidFire) {
+                    if (gShootButton[player->num] & (gInputHold->button)) {
+                        if (player-> shotTimer > 0) {
+                            player->shotTimer--;
+                        }
+                        if (player->shotTimer <= 0){
+                            Player_TankCannon(player);
+                            player->shotTimer = 3;
+                        }
+                    }
+                }
+                else {
+                    if (gShootButton[player->num] & (gInputPress->button)) {
+                        Player_TankCannon(player);
+                    }
                 }
                 Player_SmartBomb(player);
             }
@@ -5105,9 +5129,6 @@ void Player_ArwingBoost(Player* player) {
         sp28 = 1.5f;
         sp2C = 0.35f;
     }
-    if (CVarGetInteger("gInfiniteBoost", 0)) {
-        sp28 = 0.0f;
-    } 
     
     player->sfx.boost = 0;
 
@@ -5240,9 +5261,6 @@ void Player_ArwingBrake(Player* player) {
         sp30 = 1.5f;
         sp34 = 0.35f;
     }
-    if (CVarGetInteger("gInfiniteBoost", 0)) {
-        sp30 = 0.0f;
-    } 
 
     player->sfx.brake = false;
 
@@ -5856,7 +5874,7 @@ void Player_Update(Player* player) {
     s32 i;
     Vec3f sp58[30];
     s32 pad;
-
+    CALL_EVENT(PlayerPreUpdateEvent, player);
     if (gVersusMode) {
         gInputHold = &gControllerHold[player->num];
         gInputPress = &gControllerPress[player->num];
@@ -6184,6 +6202,7 @@ void Player_Update(Player* player) {
         Math_SmoothStepToF(&player->unk_194, player->unk_190, 0.5f, 0.5f, 0.0f);
         player->unk_190 = 0.0f;
     }
+    CALL_EVENT(PlayerPostUpdateEvent, player);
 }
 
 void Camera_UpdateArwingOnRails(Player* player) {

@@ -183,9 +183,9 @@ void DrawSettingsMenu(){
                 .tooltip = "Allows controller navigation of the SOH menu bar (Settings, Enhancements,...)\nCAUTION: This will disable game inputs while the menubar is visible.\n\nD-pad to move between items, A to select, and X to grab focus on the menu bar"
             });
 #endif
-            UIWidgets::CVarCheckbox("Show Inputs", "gInputEnabled", {
-                .tooltip = "Shows currently pressed inputs on the bottom right of the screen"
-            });
+            // UIWidgets::CVarCheckbox("Show Inputs", "gInputEnabled", {
+            //     .tooltip = "Shows currently pressed inputs on the bottom right of the screen"
+            // });
             if (CVarGetInteger("gInputEnabled", 0)) {
                 UIWidgets::CVarSliderFloat("Input Scale", "gInputScale", 1.0f, 3.0f, 1.0f, {
                     .tooltip = "Sets the on screen size of the displayed inputs from the Show Inputs setting",
@@ -381,10 +381,10 @@ void DrawSettingsMenu(){
         }
 
         UIWidgets::PaddedEnhancementCheckbox("Enable Alternative Assets", "gEnhancements.Mods.AlternateAssets");
+        UIWidgets::EnhancementCheckbox("Enable Gamma Boost (Needs reload)", "gGraphics.GammaMode", false, "Gamma Boost is disabled in the current build of the game", UIWidgets::CheckboxGraphics::Cross, true);
 
         // If more filters are added to LUS, make sure to add them to the filters list here
         ImGui::Text("Texture Filter (Needs reload)");
-
         UIWidgets::EnhancementCombobox("gTextureFilter", filters, 0);
 
         UIWidgets::Spacer(0);
@@ -445,6 +445,10 @@ void DrawGameMenu() {
     }
 }
 
+static const char* hudAspects[] = {
+    "Expand", "Custom", "Original (4:3)", "Widescreen (16:9)", "Nintendo 3DS (5:3)", "16:10 (8:5)", "Ultrawide (21:9)"
+};
+
 void DrawEnhancementsMenu() {
     if (UIWidgets::BeginMenu("Enhancements")) {
 
@@ -466,6 +470,10 @@ void DrawEnhancementsMenu() {
                 .tooltip = "Fixes a camera bug found in the code of the game"
             });
 
+            UIWidgets::CVarCheckbox("Sector Z: Spawn all actors", "gSzActorFix", {
+                .tooltip = "Fixes a bug found in Sector Z, where only 10 of 12 available actors are spawned, this causes two 'Space Junk Boxes' to be missing from the level."
+            });
+
             ImGui::EndMenu();
         }
 
@@ -474,6 +482,76 @@ void DrawEnhancementsMenu() {
                 .tooltip = "Restores the missile cutscene bug present in JP 1.0"
             });
 
+            UIWidgets::CVarCheckbox("Beta: Restore beta coin", "gRestoreBetaCoin", {
+                .tooltip = "Restores the beta coin that got replaced with the gold ring"
+            });
+
+            UIWidgets::CVarCheckbox("Beta: Restore old boost/brake gauge", "gRestoreOldBoostGauge", {
+                .tooltip = "Restores the old boost gauge that was seen in some beta footage"
+            });
+
+            ImGui::EndMenu();
+        }
+
+        if (UIWidgets::BeginMenu("HUD")) {
+            if (UIWidgets::CVarCombobox("HUD Aspect Ratio", "gHUDAspectRatio.Selection", hudAspects, 
+            {
+                .tooltip = "Which Aspect Ratio to use when drawing the HUD (Radar, gauges and radio messages)",
+                .defaultIndex = 0,
+            })) {
+                CVarSetInteger("gHUDAspectRatio.Enabled", 1);
+                switch (CVarGetInteger("gHUDAspectRatio.Selection", 0)) {
+                    case 0:
+                        CVarSetInteger("gHUDAspectRatio.Enabled", 0);
+                        CVarSetInteger("gHUDAspectRatio.X", 0);
+                        CVarSetInteger("gHUDAspectRatio.Y", 0);
+                        break;
+                    case 1:
+                        if (CVarGetInteger("gHUDAspectRatio.X", 0) <= 0){
+                            CVarSetInteger("gHUDAspectRatio.X", 1);
+                        }
+                        if (CVarGetInteger("gHUDAspectRatio.Y", 0) <= 0){
+                            CVarSetInteger("gHUDAspectRatio.Y", 1);
+                        }
+                        break;
+                    case 2:
+                        CVarSetInteger("gHUDAspectRatio.X", 4);
+                        CVarSetInteger("gHUDAspectRatio.Y", 3);
+                        break;
+                    case 3:
+                        CVarSetInteger("gHUDAspectRatio.X", 16);
+                        CVarSetInteger("gHUDAspectRatio.Y", 9);
+                        break;
+                    case 4:
+                        CVarSetInteger("gHUDAspectRatio.X", 5);
+                        CVarSetInteger("gHUDAspectRatio.Y", 3);
+                        break;
+                    case 5:
+                        CVarSetInteger("gHUDAspectRatio.X", 8);
+                        CVarSetInteger("gHUDAspectRatio.Y", 5);
+                        break;
+                    case 6:
+                        CVarSetInteger("gHUDAspectRatio.X", 21);
+                        CVarSetInteger("gHUDAspectRatio.Y", 9);
+                        break;                    
+                }
+            }
+            
+            if (CVarGetInteger("gHUDAspectRatio.Selection", 0) == 1)
+            {
+                UIWidgets::CVarSliderInt("Horizontal: %d", "gHUDAspectRatio.X", 1, 100, 1);
+                UIWidgets::CVarSliderInt("Vertical: %d", "gHUDAspectRatio.Y", 1, 100, 1);
+            }
+
+            ImGui::Dummy(ImVec2(ImGui::CalcTextSize("Nintendo 3DS (5:3)").x + 35, 0.0f));
+            ImGui::EndMenu();
+        }
+
+        if (UIWidgets::BeginMenu("Accessibility")) { 
+            UIWidgets::CVarCheckbox("Disable Gorgon (Area 6 boss) screen flashes", "gDisableGorgonFlash", {
+                .tooltip = "Gorgon flashes the screen repeatedly when firing its beam or when teleporting, which causes eye pain for some players and may be harmful to those with photosensitivity.",
+                .defaultValue = false
+            });
             ImGui::EndMenu();
         }
 
@@ -503,6 +581,18 @@ void DrawCheatsMenu() {
         UIWidgets::CVarCheckbox("Infinite Bombs", "gInfiniteBombs");
         UIWidgets::CVarCheckbox("Infinite Boost/Brake", "gInfiniteBoost");
         UIWidgets::CVarCheckbox("Hyper Laser", "gHyperLaser");
+        UIWidgets::CVarSliderInt("Laser Range Multiplier: %d%%", "gLaserRangeMult", 15, 800, 100,
+            { .tooltip = "Changes how far your lasers fly." });
+        UIWidgets::CVarCheckbox("Rapid-fire mode", "gRapidFire", {
+                .tooltip = "Hold A to keep firing. Release A to start charging a shot."
+            });
+            if (CVarGetInteger("gRapidFire", 0) == 1) {
+                ImGui::Dummy(ImVec2(22.0f, 0.0f));
+                ImGui::SameLine();
+                UIWidgets::CVarCheckbox("Hold L to Charge", "gLtoCharge", {
+                    .tooltip = "If you prefer to not have auto-charge."
+                });
+            }
         UIWidgets::CVarCheckbox("Self destruct button", "gHit64SelfDestruct", {
                 .tooltip = "Press Down on the D-PAD to instantly self destruct."
             });
@@ -554,9 +644,9 @@ void DrawDebugMenu() {
             .tooltip = "Enables the Gfx Debugger window, allowing you to input commands, type help for some examples"
         });
 
-        UIWidgets::CVarCheckbox("Debug mode", "gEnableDebugMode", {
-            .tooltip = "TBD"
-        });
+        // UIWidgets::CVarCheckbox("Debug mode", "gEnableDebugMode", {
+        //     .tooltip = "TBD"
+        // });
 
         UIWidgets::CVarCheckbox("Level Selector", "gLevelSelector", {
             .tooltip = "Allows you to select any level from the main menu"
