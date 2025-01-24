@@ -27,7 +27,7 @@ void CopyFloatArray(CosmeticEditorElementID id, float currentColor[4], bool isCh
         currentColor[0] = changedColor.r / 255.0f;
         currentColor[1] = changedColor.g / 255.0f;
         currentColor[2] = changedColor.b / 255.0f;
-        currentColor[3] = 1.0f;
+        currentColor[3] = changedColor.a / 255.0f;
     } else {
         currentColor[0] = cosmeticEditorElements[id].defaultR / 255.0f;
         currentColor[1] = cosmeticEditorElements[id].defaultG / 255.0f;
@@ -69,7 +69,7 @@ void CosmeticEditorRandomizeElement(CosmeticEditorElement id) {
     colorSelected.r = static_cast<uint8_t>((rand() % 256) * 255.0f);
     colorSelected.g = static_cast<uint8_t>((rand() % 256) * 255.0f);
     colorSelected.b = static_cast<uint8_t>((rand() % 256) * 255.0f);
-    colorSelected.a = static_cast<uint8_t>(255);
+    colorSelected.a = static_cast<uint8_t>((rand() % 256) * 255.0f);
 
     CVarSetColor(id.colorCvar, colorSelected);
     CVarSetInteger(id.colorChangedCvar, true);
