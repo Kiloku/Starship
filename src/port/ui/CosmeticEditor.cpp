@@ -44,10 +44,11 @@ Color_RGBA8 CosmeticEditor_getChangedColor(u8 r, u8 g, u8 b, u8 a, const char* c
 
     if (CVarGetInteger((cvarString + ".Changed").c_str(), false)) {
         Color_RGBA8 changedColor = CVarGetColor((cvarString + ".Color").c_str(), {});
-        returnedColor.r = static_cast<uint8_t>(changedColor.r);
-        returnedColor.g = static_cast<uint8_t>(changedColor.g);
-        returnedColor.b = static_cast<uint8_t>(changedColor.b);
-        returnedColor.a = static_cast<uint8_t>(255);
+        float gammaBoost = CVarGetInteger("gGraphics.GammaMode", 1) == 1 ? 2.14f : 1.0f; // We want to not distort the color the user chooses. 
+        returnedColor.r = static_cast<uint8_t>(ImPow(changedColor.r/256.f, (gammaBoost))*256.f);
+        returnedColor.g = static_cast<uint8_t>(ImPow(changedColor.g/256.f, (gammaBoost))*256.f);
+        returnedColor.b = static_cast<uint8_t>(ImPow(changedColor.b/256.f, (gammaBoost))*256.f);
+        returnedColor.a = static_cast<uint8_t>(changedColor.a);
     } else {
         returnedColor.r = r;
         returnedColor.g = g;
