@@ -21,6 +21,7 @@
 #include "assets/ast_ve1_boss.h"
 #include "assets/ast_zoness.h"
 #include "port/hooks/Events.h"
+#include "port/ui/CosmeticEditor.h"
 
 s32 gTeamEventActorIndex[4] = { 0, 0, 0, 0 };
 s32 gCallVoiceParam = 0;
@@ -3981,7 +3982,14 @@ void ActorEvent_Draw(ActorEvent* this) {
                     } else {
                         gSPDisplayList(gMasterDisp++, D_ENMY_SPACE_4007870);
                     }
-                    Actor_DrawEngineAndContrails(this);
+                    if (gCosmeticEngineGlowChanged(gLevelType, COSMETIC_GLOW_ARWING)){
+                        Color_RGBA8 customColor = gCosmeticEngineGlowColor(gLevelType, COSMETIC_GLOW_ARWING);
+
+                        Actor_DrawEngineAndContrailsCustom(this, customColor.r, customColor.g, customColor.b, customColor.a);
+                    }
+                    else{
+                        Actor_DrawEngineAndContrails(this);
+                    }
                     break;
 
                 case EVID_GRANGA_FIGHTER_2:

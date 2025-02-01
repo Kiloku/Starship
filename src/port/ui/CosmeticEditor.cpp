@@ -19,6 +19,13 @@ CosmeticEditorElement cosmeticEditorElements[COSMETIC_ELEMENT_MAX] = {
     COSMETIC_EDITOR_DERIVED_ELEMENT(COSMETIC_ELEMENT_LEON_RADAR_COLOR, "Radar (Star Wolf)", "Leon", "Radar.Leon", 0, 0, 0, 255, COSMETIC_ELEMENT_WOLF_RADAR_COLOR, 1.0f),
     COSMETIC_EDITOR_DERIVED_ELEMENT(COSMETIC_ELEMENT_PIGMA_RADAR_COLOR, "Radar (Star Wolf)", "Pigma", "Radar.Pigma", 0, 0, 0, 255, COSMETIC_ELEMENT_WOLF_RADAR_COLOR, 1.0f),
     COSMETIC_EDITOR_DERIVED_ELEMENT(COSMETIC_ELEMENT_ANDREW_RADAR_COLOR, "Radar (Star Wolf)", "Andrew", "Radar.Andrew", 0, 0, 0, 255, COSMETIC_ELEMENT_WOLF_RADAR_COLOR, 1.0f),
+
+    COSMETIC_EDITOR_ELEMENT(COSMETIC_ELEMENT_ARWING_ENGINE_PLANET, "Arwing Engine Glows", "Atmosphere", "Engine.Arwing.Planet", 255, 0, 0, 255),
+    COSMETIC_EDITOR_ELEMENT(COSMETIC_ELEMENT_ARWING_ENGINE_SPACE, "Arwing Engine Glows", "Space", "Engine.Arwing.Space", 0, 0, 255, 255),
+
+    COSMETIC_EDITOR_ELEMENT(COSMETIC_ELEMENT_WOLFEN_ENGINE_PLANET, "Wolfen Engine Glows", "Atmosphere", "Engine.Wolfen.Planet", 0, 255, 0, 255),
+    COSMETIC_EDITOR_ELEMENT(COSMETIC_ELEMENT_WOLFEN_ENGINE_SPACE, "Wolfen Engine Glows", "Space", "Engine.Wolfen.Space", 255, 64, 0, 255),
+
 };
 
 void CopyFloatArray(CosmeticEditorElementID id, float currentColor[4], bool isChanged) {
@@ -58,12 +65,50 @@ Color_RGBA8 CosmeticEditor_getChangedColor(u8 r, u8 g, u8 b, u8 a, const char* c
 
     return returnedColor;
 }
-
+const char* Concat(const char* a, const char* b){
+    std::string a_std = std::string(a);
+    std::string b_std = std::string(b);
+    std::string result = a_std + b_std;
+    return result.c_str();
+}
 extern "C" void gDPSetPrimColorWithOverride(Gfx* pkt, u8 m, u8 l, u8 r, u8 g, u8 b, u8 a, const char* cvar) {
     Color_RGBA8 setColor = CosmeticEditor_getChangedColor(r, g, b, a, cvar);
     gDPSetPrimColor(pkt, m, l, setColor.r, setColor.g, setColor.b, setColor.a);
 }
+extern "C" void gDPSetEnvColorWithOverride(Gfx* pkt, u8 r, u8 g, u8 b, u8 a, const char* cvar){
+    Color_RGBA8 setColor = CosmeticEditor_getChangedColor(r, g, b, a, cvar);
+    gDPSetEnvColor(pkt, setColor.r, setColor.g, setColor.b, setColor.a);
+}
 
+extern "C" const char* GetEngineGlowString(CosmeticEngineGlow glow)
+{
+    switch (glow){
+        case COSMETIC_GLOW_ARWING:
+        return "Arwing";
+        case COSMETIC_GLOW_WOLFEN:
+        return "Wolfen";
+        default: //temp
+        return "Arwing";
+    }
+}
+
+
+extern "C" bool gCosmeticEngineGlowChanged(u8 levelType, CosmeticEngineGlow glowType){
+    const char* glowString = GetEngineGlowString(glowType);
+    const char* levelTypeString = levelType == 0 ? "Planet" : "Space";
+    u8 buflen = strlen("gCosmetic.Engine...Changed") + strlen(glowString) + strlen(levelTypeString);
+    char cVarString[buflen]; 
+    sprintf(cVarString, "gCosmetic.Engine.%s.%s.Changed" , glowString, levelTypeString);
+    return CVarGetInteger(cVarString, 0);
+}
+extern "C" Color_RGBA8 gCosmeticEngineGlowColor(u8 levelType, CosmeticEngineGlow glowType){
+    const char* glowString = GetEngineGlowString(glowType);
+    const char* levelTypeString = levelType == 0 ? "Planet" : "Space"; 
+    u8 buflen = strlen("Engine..") + strlen(glowString) + strlen(levelTypeString);
+    char cVarString[200];
+    sprintf(cVarString, "Engine.%s.%s" , glowString, levelTypeString);
+    return CosmeticEditor_getChangedColor(255,0,255, 255, cVarString); //Magenta to detect issues
+}
 void CosmeticEditorRandomizeElement(CosmeticEditorElement id) {
     Color_RGBA8 colorSelected;
     colorSelected.r = static_cast<uint8_t>((rand() % 256) * 255.0f);

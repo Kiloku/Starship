@@ -17,7 +17,7 @@ extern "C" {
 
 void gDPSetPrimColorWithOverride(Gfx* pkt, u8 m, u8 l, u8 r, u8 g, u8 b, u8 a, const char* cvar);
 
-Color_RGBA8 CosmeticEditor_getChangedColor(u8 r, u8 g, u8 b, u8 a, const char* cvar);
+void gDPSetEnvColorWithOverride(Gfx* pkt, u8 r, u8 g, u8 b, u8 a, const char* cvar);
 
 typedef enum CosmeticEditorElementID{
     COSMETIC_ELEMENT_NONE = -1,
@@ -34,6 +34,13 @@ typedef enum CosmeticEditorElementID{
     COSMETIC_ELEMENT_LEON_RADAR_COLOR,
     COSMETIC_ELEMENT_PIGMA_RADAR_COLOR,
     COSMETIC_ELEMENT_ANDREW_RADAR_COLOR,
+
+    COSMETIC_ELEMENT_ARWING_ENGINE_PLANET,
+    COSMETIC_ELEMENT_ARWING_ENGINE_SPACE,
+
+    COSMETIC_ELEMENT_WOLFEN_ENGINE_PLANET,
+    COSMETIC_ELEMENT_WOLFEN_ENGINE_SPACE,
+
     COSMETIC_ELEMENT_MAX
 } CosmeticEditorElementID;
 
@@ -50,6 +57,23 @@ typedef struct {
     const char* colorCvar;
     const char* colorChangedCvar;
 } CosmeticEditorElement;
+
+typedef enum CosmeticEngineGlow {
+    COSMETIC_GLOW_ARWING,
+    COSMETIC_GLOW_WOLFEN,
+    COSMETIC_GLOW_RED,
+    COSMETIC_GLOW_BLUE,
+    COSMETIC_GLOW_GREEN,
+    COSMETIC_GLOW_ORANGE,
+} CosmeticEngineGlow;
+
+const char* GetEngineGlowString(CosmeticEngineGlow glow);
+
+bool gCosmeticEngineGlowChanged(u8 levelType, CosmeticEngineGlow glowType);
+
+Color_RGBA8 gCosmeticEngineGlowColor(u8 levelType, CosmeticEngineGlow glowType);
+
+Color_RGBA8 CosmeticEditor_getChangedColor(u8 r, u8 g, u8 b, u8 a, const char* cvar);
 
 #define COSMETIC_EDITOR_ELEMENT(id, parentName, name, cvar, defaultR, defaultG, defaultB, defaultA)     \
     {                                                                                                   \
