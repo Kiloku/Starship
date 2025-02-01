@@ -4,6 +4,7 @@
 
 #include "extractor/GameExtractor.h"
 #include "libultraship/src/Context.h"
+#include "libultraship/src/controller/controldevice/controller/mapping/ControllerDefaultMappings.h"
 #include "resource/type/ResourceType.h"
 #include "resource/importers/AnimFactory.h"
 #include "resource/importers/ColPolyFactory.h"
@@ -54,8 +55,8 @@ bool gEnableGammaBoost = true;
 void AudioThread_CreateNextAudioBuffer(int16_t* samples, uint32_t num_samples);
 }
 
+std::vector<uint8_t*> MemoryPool;
 GameEngine* GameEngine::Instance;
-static GamePool MemoryPool = { .chunk = 1024 * 512, .cursor = 0, .length = 0, .memory = nullptr };
 
 GameEngine::GameEngine() {
     std::vector<std::string> archiveFiles;
@@ -121,7 +122,38 @@ GameEngine::GameEngine() {
     this->context->InitConsoleVariables(); // without this line the controldeck constructor failes in
                                            // ShipDeviceIndexMappingManager::UpdateControllerNamesFromConfig()
 
-    auto controlDeck = std::make_shared<LUS::ControlDeck>();
+    auto defaultMappings = std::make_shared<Ship::ControllerDefaultMappings>(
+        // KeyboardKeyToButtonMappings - use built-in LUS defaults
+        std::unordered_map<CONTROLLERBUTTONS_T, std::unordered_set<Ship::KbScancode>>(),
+        // KeyboardKeyToAxisDirectionMappings - use built-in LUS defaults
+        std::unordered_map<Ship::StickIndex, std::vector<std::pair<Ship::Direction, Ship::KbScancode>>>(),
+        // SDLButtonToButtonMappings
+        std::unordered_map<CONTROLLERBUTTONS_T, std::unordered_set<SDL_GameControllerButton>>{
+            { BTN_A, { SDL_CONTROLLER_BUTTON_A } },
+            { BTN_B, { SDL_CONTROLLER_BUTTON_X } },
+            { BTN_START, { SDL_CONTROLLER_BUTTON_START } },
+            { BTN_CLEFT, { SDL_CONTROLLER_BUTTON_Y } },
+            { BTN_CDOWN, { SDL_CONTROLLER_BUTTON_B } },
+            { BTN_DUP, { SDL_CONTROLLER_BUTTON_DPAD_UP } },
+            { BTN_DDOWN, { SDL_CONTROLLER_BUTTON_DPAD_DOWN } },
+            { BTN_DLEFT, { SDL_CONTROLLER_BUTTON_DPAD_LEFT } },
+            { BTN_DRIGHT, { SDL_CONTROLLER_BUTTON_DPAD_RIGHT } },
+            { BTN_R, { SDL_CONTROLLER_BUTTON_RIGHTSHOULDER } },
+            { BTN_Z, { SDL_CONTROLLER_BUTTON_LEFTSHOULDER } }
+        },
+        // SDLButtonToAxisDirectionMappings - use built-in LUS defaults
+        std::unordered_map<Ship::StickIndex, std::vector<std::pair<Ship::Direction, SDL_GameControllerButton>>>(),
+        // SDLAxisDirectionToButtonMappings
+        std::unordered_map<CONTROLLERBUTTONS_T, std::vector<std::pair<SDL_GameControllerAxis, int32_t>>>{
+            { BTN_R, { { SDL_CONTROLLER_AXIS_TRIGGERRIGHT, 1 } } },
+            { BTN_Z, { { SDL_CONTROLLER_AXIS_TRIGGERLEFT, 1 } } },
+            { BTN_CUP, { { SDL_CONTROLLER_AXIS_RIGHTY, -1 } } },
+            { BTN_CRIGHT, { { SDL_CONTROLLER_AXIS_RIGHTX, 1 } } }
+        },
+        // SDLAxisDirectionToAxisDirectionMappings - use built-in LUS defaults
+        std::unordered_map<Ship::StickIndex, std::vector<std::pair<Ship::Direction, std::pair<SDL_GameControllerAxis, int32_t>>>>()
+    );
+    auto controlDeck = std::make_shared<LUS::ControlDeck>(std::vector<CONTROLLERBUTTONS_T>(), defaultMappings);
 
     this->context->InitResourceManager(archiveFiles, {}, 3); // without this line InitWindow fails in Gui::Init()
     this->context->InitConsole(); // without this line the GuiWindow constructor fails in ConsoleWindow::InitElement()
@@ -252,7 +284,10 @@ void GameEngine::Create() {
 void GameEngine::Destroy() {
     PortEnhancements_Exit();
     AudioExit();
-    free(MemoryPool.memory);
+    for (auto ptr : MemoryPool) {
+        free(ptr);
+    }
+    MemoryPool.clear();
 }
 
 void GameEngine::StartFrame() const {
@@ -507,6 +542,15 @@ int GameEngine::ShowYesNoBox(const char* title, const char* box) {
     return ret;
 }
 
+bool GameEngine::HasVersion(SF64Version ver){
+    auto versions = Ship::Context::GetInstance()->GetResourceManager()->GetArchiveManager()->GetGameVersions();
+    return std::find(versions.begin(), versions.end(), ver) != versions.end();
+}
+
+extern "C" bool GameEngine_HasVersion(SF64Version ver) {
+    return GameEngine::HasVersion(ver);
+}
+
 extern "C" uint32_t GameEngine_GetSampleRate() {
     auto player = Ship::Context::GetInstance()->GetAudio()->GetAudioPlayer();
     if (player == nullptr) {
@@ -717,27 +761,16 @@ extern "C" int32_t OTRConvertHUDXToScreenX(int32_t v) {
 }
 
 extern "C" void* GameEngine_Malloc(size_t size) {
-    // This is really wrong
-    return malloc(size);
-    // TODO: Kenix please take a look at this, i think it works but you are better at this
+    MemoryPool.push_back(new uint8_t[size]);
+    return (void*) MemoryPool.back();
+}
 
-    const auto chunk = MemoryPool.chunk;
-
-    if (size == 0) {
-        return nullptr;
+extern "C" void GameEngine_Free(void* ptr) {
+    for (auto it = MemoryPool.begin(); it != MemoryPool.end(); ++it) {
+        if (*it == ptr) {
+            free(ptr);
+            MemoryPool.erase(it);
+            break;
+        }
     }
-
-    if (MemoryPool.cursor + size < MemoryPool.length) {
-        const auto res = static_cast<uint8_t*>(MemoryPool.memory) + MemoryPool.cursor;
-        MemoryPool.cursor += size;
-        // SPDLOG_INFO("Allocating {} into memory pool", size);
-        return res;
-    }
-
-    MemoryPool.length += chunk;
-    MemoryPool.memory =
-        MemoryPool.memory == nullptr ? malloc(MemoryPool.length) : realloc(MemoryPool.memory, MemoryPool.length);
-    memset(static_cast<uint8_t*>(MemoryPool.memory) + MemoryPool.length, 0, MemoryPool.length - chunk);
-    SPDLOG_INFO("Memory pool resized from {} to {}", MemoryPool.length - chunk, MemoryPool.length);
-    return GameEngine_Malloc(size);
 }
