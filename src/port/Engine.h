@@ -3,12 +3,11 @@
 #define LOAD_ASSET(path) (path == NULL ? NULL : (GameEngine_OTRSigCheck((const char*) path) ? ResourceGetDataByName((const char*) path) : path))
 #define LOAD_ASSET_RAW(path) ResourceGetDataByName((const char*) path)
 
-struct GamePool {
-    unsigned long chunk;
-    unsigned long cursor;
-    unsigned long length;
-    void* memory;
-};
+typedef enum {
+    SF64_VER_US = 0x94F1D5A7,
+    SF64_VER_EU = 0x6EE9ADE7,
+    SF64_VER_JP = 0x3728D3E1
+} SF64Version;
 
 #ifdef __cplusplus
 #include <vector>
@@ -45,10 +44,10 @@ class GameEngine {
 
     static int ShowYesNoBox(const char* title, const char* box);
     static void ShowMessage(const char* title, const char* message, SDL_MessageBoxFlags type = SDL_MESSAGEBOX_ERROR);
+    static bool HasVersion(SF64Version ver);
 };
 
 extern "C" void* GameEngine_Malloc(size_t size);
-
 
 #define memallocn(type, n) (type*) GameEngine_Malloc(sizeof(type) * n)
 #define memalloc(type) memallocn(type, 1)
@@ -56,6 +55,7 @@ extern "C" void* GameEngine_Malloc(size_t size);
 #else
 #include <stdint.h>
 
+bool GameEngine_HasVersion(SF64Version ver);
 void GameEngine_ProcessGfxCommands(Gfx* commands);
 float GameEngine_GetAspectRatio();
 uint8_t GameEngine_OTRSigCheck(char* imgData);
@@ -79,5 +79,6 @@ int16_t OTRGetRectDimensionFromRightEdgeOverride(float v);
 uint32_t OTRGetGameRenderWidth();
 uint32_t OTRGetGameRenderHeight();
 void* GameEngine_Malloc(size_t size);
+void GameEngine_GetTextureInfo(const char* path, int32_t* width, int32_t* height, float* scale, bool* custom);
 #define memalloc(size) GameEngine_Malloc(size)
 #endif
