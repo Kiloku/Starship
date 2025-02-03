@@ -615,7 +615,28 @@ void Actor_DrawEngineGlow(Actor* actor, EngineGlowColor color) {
         Matrix_Pop(&gGfxMatrix);
     }
 }
+void Actor_DrawEngineGlowCustom(Actor* actor, u8 r, u8 g, u8 b, u8 a){
+        f32 scale;
 
+    if ((actor->iwork[11] != 0) && (actor->obj.status == OBJ_ACTIVE)) {
+        scale = 0.63f;
+        if (actor->iwork[11] >= 2) {
+            scale = D_edisplay_800CFCA0[actor->iwork[11] - 2] * 0.45f;
+        }
+        if ((gGameFrameCount % 2) != 0) {
+            scale *= 1.2f;
+        }
+        Matrix_Push(&gGfxMatrix);
+        Matrix_Scale(gGfxMatrix, scale, scale, scale, MTXF_APPLY);
+        Matrix_RotateZ(gGfxMatrix, -actor->obj.rot.z * M_DTOR, MTXF_APPLY);
+        Matrix_RotateX(gGfxMatrix, -actor->obj.rot.x * M_DTOR, MTXF_APPLY);
+        Matrix_RotateY(gGfxMatrix, -actor->obj.rot.y * M_DTOR, MTXF_APPLY);
+        Matrix_RotateY(gGfxMatrix, -gPlayer[gPlayerNum].camYaw, MTXF_APPLY);
+        Matrix_SetGfxMtx(&gMasterDisp);
+        Display_DrawEngineGlowCustom(r, g, b, a);
+        Matrix_Pop(&gGfxMatrix);
+    }
+}
 void ActorTeamArwing_Draw(ActorTeamArwing* this) {
     Vec3f src = { 0.0f, 0.0f, 0.0f };
     Vec3f dest;

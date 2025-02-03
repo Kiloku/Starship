@@ -933,7 +933,7 @@ void Display_LandmasterEngineGlow_Draw(Player* player) {
         Display_DrawEngineGlowCustom(customColor.r, customColor.g, customColor.b, customColor.a);
     }
     else{
-    Display_DrawEngineGlow(gLevelType);
+        Display_DrawEngineGlow(gLevelType);
     }
     Matrix_Pop(&gGfxMatrix);
 }
