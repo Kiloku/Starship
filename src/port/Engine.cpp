@@ -62,7 +62,6 @@ GameEngine::GameEngine() {
     std::vector<std::string> archiveFiles;
     const std::string main_path = Ship::Context::GetPathRelativeToAppDirectory("sf64.o2r");
     const std::string assets_path = Ship::Context::GetPathRelativeToAppDirectory("starship.o2r");
-    const std::string mod_path = Ship::Context::GetPathRelativeToAppDirectory("mods/sf64jp.o2r");
 
 #ifdef _WIN32
     AllocConsole();
@@ -86,8 +85,6 @@ GameEngine::GameEngine() {
             if (ShowYesNoBox("Extraction Complete", "ROM Extracted. Extract another?") == IDYES) {
                 if(!GenAssetFile()){
                     ShowMessage("Error", "An error occured, no O2R file was generated.");
-                } else {
-                    archiveFiles.push_back(mod_path);
                 }
             }
         } else {
@@ -247,7 +244,7 @@ GameEngine::GameEngine() {
                                     "SoundFont", static_cast<uint32_t>(SF64::ResourceType::SoundFont), 0);
 
     prevAltAssets = CVarGetInteger("gEnhancements.Mods.AlternateAssets", 0);
-    gEnableGammaBoost = CVarGetInteger("gGraphics.GammaMode", 1) == 1;
+    gEnableGammaBoost = CVarGetInteger("gGraphics.GammaMode", 0) == 0;
     context->GetResourceManager()->SetAltAssetsEnabled(prevAltAssets);
 }
 
@@ -585,6 +582,19 @@ extern "C" uint8_t GameEngine_OTRSigCheck(const char* data) {
         return 0;
     }
     return strncmp(data, sOtrSignature, strlen(sOtrSignature)) == 0;
+}
+
+extern "C" void GameEngine_GetTextureInfo(const char* path, int32_t* width, int32_t* height, float* scale, bool* custom) {
+    if(GameEngine_OTRSigCheck(path) != 1){
+        *custom = false;
+        return;
+    }
+    std::shared_ptr<Fast::Texture> tex = std::static_pointer_cast<Fast::Texture>(
+        Ship::Context::GetInstance()->GetResourceManager()->LoadResourceProcess(path));
+    *width = tex->Width;
+    *height = tex->Height;
+    *scale = tex->VPixelScale;
+    *custom = tex->Flags & (1 << 0);
 }
 
 extern "C" float __cosf(float angle) throw() {
