@@ -2385,6 +2385,7 @@ void ActorAllRange_Draw(ActorAllRange* this) {
             case AI360_LEON:
             case AI360_PIGMA:
             case AI360_ANDREW:
+            {   //For some reason this won't compile on MacOS unless I add these braces.
                 bool cosmeticGlowChanged = gCosmeticEngineGlowChanged(gLevelType, COSMETIC_GLOW_WOLFEN);
                 Color_RGBA8 customColorPrimary = gCosmeticEngineGlowColor(gLevelType, COSMETIC_GLOW_WOLFEN, false);
                 Color_RGBA8 customColorSecondary = gCosmeticEngineGlowColor(gLevelType, COSMETIC_GLOW_WOLFEN, true);
@@ -2410,6 +2411,7 @@ void ActorAllRange_Draw(ActorAllRange* this) {
                     }
                 }
                 break;
+            }
 
             case AI360_KATT:
                 gSPDisplayList(gMasterDisp++, aKattShipDL);
