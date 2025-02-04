@@ -111,7 +111,7 @@ extern "C" bool gCosmeticEngineGlowChanged(u8 levelType, CosmeticEngineGlow glow
     const char* levelTypeString = levelType == 0 ? "Planet" : "Space";
     const char* suffix = "_Secondary";
 
-    u8 buflen = strlen("gCosmetic.Engine...Changed") + strlen(glowString) + strlen(levelTypeString) + 1;
+    const u8 buflen = strlen("gCosmetic.Engine...Changed") + strlen(glowString) + strlen(levelTypeString) + 1;
     char cVarString[buflen]; 
     sprintf(cVarString, "gCosmetic.Engine.%s.%s.Changed", glowString, levelTypeString);
 
@@ -124,7 +124,7 @@ extern "C" Color_RGBA8 gCosmeticEngineGlowColor(u8 levelType, CosmeticEngineGlow
     const char* glowString = GetEngineGlowString(glowType);
     const char* levelTypeString = levelType == 0 ? "Planet" : "Space"; 
     const char* suffix = secondary ? "_Secondary" : "";
-    u8 buflen = strlen("Engine..") + strlen(glowString) + strlen(levelTypeString) + strlen(suffix);
+    const u8 buflen = strlen("Engine..") + strlen(glowString) + strlen(levelTypeString) + strlen(suffix);
     char cVarString[buflen];
     sprintf(cVarString, "Engine.%s.%s%s" , glowString, levelTypeString, suffix);
     return CosmeticEditor_getChangedColor(255,0,255, 255, cVarString); //Magenta to detect issues

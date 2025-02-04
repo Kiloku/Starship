@@ -91,6 +91,6 @@ Color_RGBA8 CosmeticEditor_getChangedColor(u8 r, u8 g, u8 b, u8 a, const char* c
             "gCosmetic." cvar ".Changed"                                                                                            \
     }
 #ifdef __cplusplus
-std::vector<CosmeticEditorElementID> GetAllDerivedFrom(CosmeticEditorElementID id);
 }
+std::vector<CosmeticEditorElementID> GetAllDerivedFrom(CosmeticEditorElementID id);
 #endif //__cplusplus
