@@ -530,7 +530,7 @@ void Actor_DrawEngineAndContrails(Actor* this) {
         Matrix_Pop(&gGfxMatrix);
     }
 }
-void Actor_DrawEngineAndContrailsCustom(Actor* this, u8 r, u8 g, u8 b, u8 a) {
+void Actor_DrawEngineAndContrailsCustom(Actor* this, Color_RGBA8 primary, Color_RGBA8 secondary) {
     f32 sp5C;
     f32 temp1;
     f32 sp54;
@@ -557,7 +557,7 @@ void Actor_DrawEngineAndContrailsCustom(Actor* this, u8 r, u8 g, u8 b, u8 a) {
         Matrix_RotateY(gGfxMatrix, -gPlayer[gPlayerNum].camYaw, MTXF_APPLY);
         Matrix_RotateX(gGfxMatrix, gPlayer[gPlayerNum].camPitch, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
-        Display_DrawEngineGlowCustom(r,g,b,a);
+        Display_DrawEngineGlowCustom(primary, secondary);
         Matrix_Pop(&gGfxMatrix);
     }
 
@@ -615,7 +615,7 @@ void Actor_DrawEngineGlow(Actor* actor, EngineGlowColor color) {
         Matrix_Pop(&gGfxMatrix);
     }
 }
-void Actor_DrawEngineGlowCustom(Actor* actor, u8 r, u8 g, u8 b, u8 a){
+void Actor_DrawEngineGlowCustom(Actor* actor, Color_RGBA8 primary, Color_RGBA8 secondary){
         f32 scale;
 
     if ((actor->iwork[11] != 0) && (actor->obj.status == OBJ_ACTIVE)) {
@@ -633,7 +633,7 @@ void Actor_DrawEngineGlowCustom(Actor* actor, u8 r, u8 g, u8 b, u8 a){
         Matrix_RotateY(gGfxMatrix, -actor->obj.rot.y * M_DTOR, MTXF_APPLY);
         Matrix_RotateY(gGfxMatrix, -gPlayer[gPlayerNum].camYaw, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
-        Display_DrawEngineGlowCustom(r, g, b, a);
+        Display_DrawEngineGlowCustom(primary, secondary);
         Matrix_Pop(&gGfxMatrix);
     }
 }
@@ -687,9 +687,10 @@ void ActorTeamArwing_Draw(ActorTeamArwing* this) {
         gSPDisplayList(gMasterDisp++, D_ENMY_SPACE_4007870);
     }
     if (gCosmeticEngineGlowChanged(gLevelType, COSMETIC_GLOW_ARWING)){
-        Color_RGBA8 customColor = gCosmeticEngineGlowColor(gLevelType, COSMETIC_GLOW_ARWING);
+        Color_RGBA8 customColorPrimary = gCosmeticEngineGlowColor(gLevelType, COSMETIC_GLOW_ARWING, false);
+        Color_RGBA8 customColorSecondary = gCosmeticEngineGlowColor(gLevelType, COSMETIC_GLOW_ARWING, true);
 
-        Actor_DrawEngineAndContrailsCustom(this, customColor.r, customColor.g, customColor.b, customColor.a);
+        Actor_DrawEngineAndContrailsCustom(this, customColorPrimary, customColorSecondary);
     }
     else{
         Actor_DrawEngineAndContrails(this);

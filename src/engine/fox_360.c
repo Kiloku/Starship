@@ -2386,16 +2386,17 @@ void ActorAllRange_Draw(ActorAllRange* this) {
             case AI360_PIGMA:
             case AI360_ANDREW:
                 bool cosmeticGlowChanged = gCosmeticEngineGlowChanged(gLevelType, COSMETIC_GLOW_WOLFEN);
-                Color_RGBA8 customColor = gCosmeticEngineGlowColor(gLevelType, COSMETIC_GLOW_WOLFEN);
+                Color_RGBA8 customColorPrimary = gCosmeticEngineGlowColor(gLevelType, COSMETIC_GLOW_WOLFEN, false);
+                Color_RGBA8 customColorSecondary = gCosmeticEngineGlowColor(gLevelType, COSMETIC_GLOW_WOLFEN, true);
                 if (gCurrentLevel == LEVEL_VENOM_2) {
                     gSPDisplayList(gMasterDisp++, aStarWolfUpgradedShipDL);
                     Matrix_Push(&gGfxMatrix);
                     Matrix_Translate(gGfxMatrix, 30.0f, 0.0f, -60.0f, MTXF_APPLY);
-                    cosmeticGlowChanged ? Actor_DrawEngineGlowCustom(this, customColor.r,  customColor.g,  customColor.b, customColor.a) : Actor_DrawEngineGlow(this, EG_GREEN);
+                    cosmeticGlowChanged ? Actor_DrawEngineGlowCustom(this, customColorPrimary, customColorSecondary) : Actor_DrawEngineGlow(this, EG_GREEN);
                     Matrix_Pop(&gGfxMatrix);
                     Matrix_Push(&gGfxMatrix);
                     Matrix_Translate(gGfxMatrix, -30.0f, 0.0f, -60.0f, MTXF_APPLY);
-                    cosmeticGlowChanged ? Actor_DrawEngineGlowCustom(this, customColor.r,  customColor.g,  customColor.b, customColor.a) : Actor_DrawEngineGlow(this, EG_GREEN);
+                    cosmeticGlowChanged ? Actor_DrawEngineGlowCustom(this, customColorPrimary, customColorSecondary) : Actor_DrawEngineGlow(this, EG_GREEN);
                     Matrix_Pop(&gGfxMatrix);
                     ActorAllRange_DrawBarrelRoll(this);
                     ActorAllRange_DrawShield(this);
@@ -2403,9 +2404,9 @@ void ActorAllRange_Draw(ActorAllRange* this) {
                     gSPDisplayList(gMasterDisp++, aStarWolfStandardShipDL);
                     Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, -60.0f, MTXF_APPLY);
                     if (gCurrentLevel == LEVEL_BOLSE) {
-                        cosmeticGlowChanged ? Actor_DrawEngineGlowCustom(this, customColor.r,  customColor.g,  customColor.b, customColor.a) : Actor_DrawEngineGlow(this, EG_ORANGE);
+                        cosmeticGlowChanged ? Actor_DrawEngineGlowCustom(this, customColorPrimary, customColorSecondary) : Actor_DrawEngineGlow(this, EG_ORANGE);
                     } else {
-                        cosmeticGlowChanged ? Actor_DrawEngineGlowCustom(this, customColor.r,  customColor.g,  customColor.b, customColor.a) : Actor_DrawEngineGlow(this, EG_GREEN);
+                        cosmeticGlowChanged ? Actor_DrawEngineGlowCustom(this,  customColorPrimary, customColorSecondary) : Actor_DrawEngineGlow(this, EG_GREEN);
                     }
                 }
                 break;

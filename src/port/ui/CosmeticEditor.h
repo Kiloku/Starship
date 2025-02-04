@@ -75,7 +75,7 @@ const char* GetEngineGlowString(CosmeticEngineGlow glow);
 
 bool gCosmeticEngineGlowChanged(u8 levelType, CosmeticEngineGlow glowType);
 
-Color_RGBA8 gCosmeticEngineGlowColor(u8 levelType, CosmeticEngineGlow glowType);
+Color_RGBA8 gCosmeticEngineGlowColor(u8 levelType, CosmeticEngineGlow glowType, bool secondary);
 
 Color_RGBA8 CosmeticEditor_getChangedColor(u8 r, u8 g, u8 b, u8 a, const char* cvar);
 

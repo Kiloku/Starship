@@ -3983,9 +3983,10 @@ void ActorEvent_Draw(ActorEvent* this) {
                         gSPDisplayList(gMasterDisp++, D_ENMY_SPACE_4007870);
                     }
                     if (gCosmeticEngineGlowChanged(gLevelType, COSMETIC_GLOW_ARWING)){
-                        Color_RGBA8 customColor = gCosmeticEngineGlowColor(gLevelType, COSMETIC_GLOW_ARWING);
+                        Color_RGBA8 customColorPrimary = gCosmeticEngineGlowColor(gLevelType, COSMETIC_GLOW_ARWING, false);
+                        Color_RGBA8 customColorSecondary = gCosmeticEngineGlowColor(gLevelType, COSMETIC_GLOW_ARWING, true);
 
-                        Actor_DrawEngineAndContrailsCustom(this, customColor.r, customColor.g, customColor.b, customColor.a);
+                        Actor_DrawEngineAndContrailsCustom(this,  customColorPrimary, customColorSecondary);
                     }
                     else{
                         Actor_DrawEngineAndContrails(this);

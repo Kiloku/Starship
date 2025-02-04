@@ -69,12 +69,7 @@ Color_RGBA8 CosmeticEditor_getChangedColor(u8 r, u8 g, u8 b, u8 a, const char* c
 
     return returnedColor;
 }
-const char* Concat(const char* a, const char* b){
-    std::string a_std = std::string(a);
-    std::string b_std = std::string(b);
-    std::string result = a_std + b_std;
-    return result.c_str();
-}
+
 extern "C" void gDPSetPrimColorWithOverride(Gfx* pkt, u8 m, u8 l, u8 r, u8 g, u8 b, u8 a, const char* cvar) {
     Color_RGBA8 setColor = CosmeticEditor_getChangedColor(r, g, b, a, cvar);
     gDPSetPrimColor(pkt, m, l, setColor.r, setColor.g, setColor.b, setColor.a);
@@ -114,17 +109,24 @@ extern "C" const char* GetEngineGlowString(CosmeticEngineGlow glow)
 extern "C" bool gCosmeticEngineGlowChanged(u8 levelType, CosmeticEngineGlow glowType){
     const char* glowString = GetEngineGlowString(glowType);
     const char* levelTypeString = levelType == 0 ? "Planet" : "Space";
-    u8 buflen = strlen("gCosmetic.Engine...Changed") + strlen(glowString) + strlen(levelTypeString);
+    const char* suffix = "_Secondary";
+
+    u8 buflen = strlen("gCosmetic.Engine...Changed") + strlen(glowString) + strlen(levelTypeString) + 1;
     char cVarString[buflen]; 
-    sprintf(cVarString, "gCosmetic.Engine.%s.%s.Changed" , glowString, levelTypeString);
-    return CVarGetInteger(cVarString, 0);
+    sprintf(cVarString, "gCosmetic.Engine.%s.%s.Changed", glowString, levelTypeString);
+
+    char cVarStringSecondary[buflen + strlen(suffix) + 1];
+    sprintf(cVarStringSecondary, "gCosmetic.Engine.%s.%s%s.Changed" , glowString, levelTypeString, suffix);
+    
+    return CVarGetInteger(cVarString, 0) || CVarGetInteger(cVarStringSecondary, 0); 
 }
-extern "C" Color_RGBA8 gCosmeticEngineGlowColor(u8 levelType, CosmeticEngineGlow glowType){
+extern "C" Color_RGBA8 gCosmeticEngineGlowColor(u8 levelType, CosmeticEngineGlow glowType, bool secondary){
     const char* glowString = GetEngineGlowString(glowType);
     const char* levelTypeString = levelType == 0 ? "Planet" : "Space"; 
-    u8 buflen = strlen("Engine..") + strlen(glowString) + strlen(levelTypeString);
-    char cVarString[200];
-    sprintf(cVarString, "Engine.%s.%s" , glowString, levelTypeString);
+    const char* suffix = secondary ? "_Secondary" : "";
+    u8 buflen = strlen("Engine..") + strlen(glowString) + strlen(levelTypeString) + strlen(suffix);
+    char cVarString[buflen];
+    sprintf(cVarString, "Engine.%s.%s%s" , glowString, levelTypeString, suffix);
     return CosmeticEditor_getChangedColor(255,0,255, 255, cVarString); //Magenta to detect issues
 }
 void CosmeticEditorRandomizeElement(CosmeticEditorElement id) {
@@ -228,7 +230,34 @@ void CosmeticEditorDrawColorTab() {
             CopyFloatArray(entry.id, currentColor, CVarGetInteger(entry.colorChangedCvar, false));
             bool colorChanged =
                 ImGui::ColorEdit4("Color", currentColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
-            if (colorChanged) {
+
+            std::vector<CosmeticEditorElementID> subEntries = GetAllDerivedFrom(entry.id);
+            bool subEntryChanged = false;
+            for (int i = 0; i < subEntries.size(); i++){
+
+                float currentSecondaryColor[4];
+                ImGui::SameLine();
+                CosmeticEditorElement subEntry = cosmeticEditorElements[subEntries[i]];
+                if (subEntry.name != "") { 
+                    continue;
+                }
+                CopyFloatArray(subEntry.id, currentSecondaryColor, CVarGetInteger(subEntry.colorChangedCvar, false));
+                bool secondaryColorChanged =
+                    ImGui::ColorEdit4("SubColor", currentSecondaryColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+                if (secondaryColorChanged || colorChanged) {
+                    subEntryChanged = true;
+                    Color_RGBA8 colorSelected;
+                    colorSelected.r = static_cast<uint8_t>(currentSecondaryColor[0] * 255.0f);
+                    colorSelected.g = static_cast<uint8_t>(currentSecondaryColor[1] * 255.0f);
+                    colorSelected.b = static_cast<uint8_t>(currentSecondaryColor[2] * 255.0f);
+                    colorSelected.a = static_cast<uint8_t>(currentSecondaryColor[3] * 255.0f);
+
+                    CVarSetColor(subEntry.colorCvar, colorSelected);
+                    CVarSetInteger(subEntry.colorChangedCvar, true);
+                }
+            }
+
+            if (colorChanged || subEntryChanged) {
                 Color_RGBA8 colorSelected;
                 colorSelected.r = static_cast<uint8_t>(currentColor[0] * 255.0f);
                 colorSelected.g = static_cast<uint8_t>(currentColor[1] * 255.0f);
@@ -237,28 +266,6 @@ void CosmeticEditorDrawColorTab() {
 
                 CVarSetColor(entry.colorCvar, colorSelected);
                 CVarSetInteger(entry.colorChangedCvar, true);
-            }
-            std::vector<CosmeticEditorElementID> subEntries = GetAllDerivedFrom(entry.id);
-            
-            for (int i = 0; i < subEntries.size(); i++){
-                ImGui::SameLine();
-                CosmeticEditorElement subEntry = cosmeticEditorElements[subEntries[i]];
-                if (subEntry.name != "") { 
-                    continue;
-                }
-                CopyFloatArray(subEntry.id, currentColor, CVarGetInteger(subEntry.colorChangedCvar, false));
-                bool colorChanged =
-                    ImGui::ColorEdit4("SubColor", currentColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
-                if (colorChanged) {
-                    Color_RGBA8 colorSelected;
-                    colorSelected.r = static_cast<uint8_t>(currentColor[0] * 255.0f);
-                    colorSelected.g = static_cast<uint8_t>(currentColor[1] * 255.0f);
-                    colorSelected.b = static_cast<uint8_t>(currentColor[2] * 255.0f);
-                    colorSelected.a = static_cast<uint8_t>(currentColor[3] * 255.0f);
-
-                    CVarSetColor(subEntry.colorCvar, colorSelected);
-                    CVarSetInteger(subEntry.colorChangedCvar, true);
-                }
             }
 
             ImGui::SameLine();
