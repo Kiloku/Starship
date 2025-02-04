@@ -7,7 +7,7 @@ std::vector<const char*> cosmeticEditorParentElements;
 
 CosmeticEditorElement cosmeticEditorElements[COSMETIC_ELEMENT_MAX] = {
     COSMETIC_EDITOR_ELEMENT(COSMETIC_ELEMENT_FOX_RADAR_COLOR, "Radar (Star Fox)", "Fox", "Radar.Fox", 177, 242, 12, 255),
-    COSMETIC_EDITOR_DERIVED_ELEMENT(COSMETIC_ELEMENT_FOX_RADAR_COLOR_DARK, "Radar (Star Fox)", "Fox (Blink)", "Radar.Fox_Dark", 89, 121, 6, 128, COSMETIC_ELEMENT_FOX_RADAR_COLOR, 0.5f),
+    COSMETIC_EDITOR_DERIVED_ELEMENT(COSMETIC_ELEMENT_FOX_RADAR_COLOR_DARK, "Radar (Star Fox)", "", "Radar.Fox_Dark", 89, 121, 6, 128, COSMETIC_ELEMENT_FOX_RADAR_COLOR, 0.5f),
     COSMETIC_EDITOR_ELEMENT(COSMETIC_ELEMENT_FALCO_RADAR_COLOR, "Radar (Star Fox)", "Falco", "Radar.Falco", 90, 90, 255, 255),
     // COSMETIC_EDITOR_DERIVED_ELEMENT(COSMETIC_ELEMENT_FALCO_RADAR_COLOR_DARK, "Radar (Star Fox)", "Falco (Blink)", "Radar.Falco_Dark", 45, 45, 128, 128, COSMETIC_ELEMENT_FALCO_RADAR_COLOR, 0.5f),
     COSMETIC_EDITOR_ELEMENT(COSMETIC_ELEMENT_PEPPY_RADAR_COLOR, "Radar (Star Fox)", "Peppy", "Radar.Peppy", 255, 30, 0, 255),
@@ -21,10 +21,14 @@ CosmeticEditorElement cosmeticEditorElements[COSMETIC_ELEMENT_MAX] = {
     COSMETIC_EDITOR_DERIVED_ELEMENT(COSMETIC_ELEMENT_ANDREW_RADAR_COLOR, "Radar (Star Wolf)", "Andrew", "Radar.Andrew", 0, 0, 0, 255, COSMETIC_ELEMENT_WOLF_RADAR_COLOR, 1.0f),
 
     COSMETIC_EDITOR_ELEMENT(COSMETIC_ELEMENT_ARWING_ENGINE_PLANET, "Arwing Engine Glows", "Atmosphere", "Engine.Arwing.Planet", 255, 0, 0, 255),
+    COSMETIC_EDITOR_DERIVED_ELEMENT(COSMETIC_ELEMENT_ARWING_ENGINE_PLANET_SECONDARY, "Arwing Engine Glows", "", "Engine.Arwing.Planet_Secondary", 255, 255, 255, 255, COSMETIC_ELEMENT_ARWING_ENGINE_PLANET, 1.0f),
     COSMETIC_EDITOR_ELEMENT(COSMETIC_ELEMENT_ARWING_ENGINE_SPACE, "Arwing Engine Glows", "Space", "Engine.Arwing.Space", 0, 0, 255, 255),
+    COSMETIC_EDITOR_DERIVED_ELEMENT(COSMETIC_ELEMENT_ARWING_ENGINE_SPACE_SECONDARY, "Arwing Engine Glows", "", "Engine.Arwing.Space_Secondary", 255, 255, 255, 255, COSMETIC_ELEMENT_ARWING_ENGINE_SPACE, 1.0f),
 
     COSMETIC_EDITOR_ELEMENT(COSMETIC_ELEMENT_WOLFEN_ENGINE_PLANET, "Wolfen Engine Glows", "Atmosphere", "Engine.Wolfen.Planet", 0, 255, 0, 255),
+    COSMETIC_EDITOR_DERIVED_ELEMENT(COSMETIC_ELEMENT_WOLFEN_ENGINE_PLANET_SECONDARY, "Wolfen Engine Glows", "", "Engine.Wolfen.Planet_Secondary", 255, 255, 255, 255, COSMETIC_ELEMENT_WOLFEN_ENGINE_PLANET, 1.0f),
     COSMETIC_EDITOR_ELEMENT(COSMETIC_ELEMENT_WOLFEN_ENGINE_SPACE, "Wolfen Engine Glows", "Space", "Engine.Wolfen.Space", 255, 64, 0, 255),
+    COSMETIC_EDITOR_DERIVED_ELEMENT(COSMETIC_ELEMENT_WOLFEN_ENGINE_SPACE_SECONDARY, "Wolfen Engine Glows", "", "Engine.Wolfen.Space_Secondary", 255, 255, 255, 255, COSMETIC_ELEMENT_WOLFEN_ENGINE_SPACE, 1.0f),
 
 };
 
@@ -78,6 +82,20 @@ extern "C" void gDPSetPrimColorWithOverride(Gfx* pkt, u8 m, u8 l, u8 r, u8 g, u8
 extern "C" void gDPSetEnvColorWithOverride(Gfx* pkt, u8 r, u8 g, u8 b, u8 a, const char* cvar){
     Color_RGBA8 setColor = CosmeticEditor_getChangedColor(r, g, b, a, cvar);
     gDPSetEnvColor(pkt, setColor.r, setColor.g, setColor.b, setColor.a);
+}
+
+std::vector<CosmeticEditorElementID> GetAllDerivedFrom(CosmeticEditorElementID id)
+{
+    std::vector<CosmeticEditorElementID> Found;
+    u8 i = 0;
+    for (auto& entry : cosmeticEditorElements) {
+        if (entry.derivedFrom == id)
+        {
+            Found.push_back(entry.id);
+        }
+    }
+    
+    return Found;
 }
 
 extern "C" const char* GetEngineGlowString(CosmeticEngineGlow glow)
@@ -194,6 +212,11 @@ void CosmeticEditorDrawColorTab() {
             if (parent != entry.parentName) {
                 continue;
             }
+            bool derived = entry.derivedFrom != COSMETIC_ELEMENT_NONE;
+            if (entry.name == "" && derived) { //Is a subEntry
+                continue;
+            }
+            
             float currentColor[4];
 
             ImGui::PushID(entry.id);
@@ -215,10 +238,38 @@ void CosmeticEditorDrawColorTab() {
                 CVarSetColor(entry.colorCvar, colorSelected);
                 CVarSetInteger(entry.colorChangedCvar, true);
             }
+            std::vector<CosmeticEditorElementID> subEntries = GetAllDerivedFrom(entry.id);
+            
+            for (int i = 0; i < subEntries.size(); i++){
+                ImGui::SameLine();
+                CosmeticEditorElement subEntry = cosmeticEditorElements[subEntries[i]];
+                if (subEntry.name != "") { 
+                    continue;
+                }
+                CopyFloatArray(subEntry.id, currentColor, CVarGetInteger(subEntry.colorChangedCvar, false));
+                bool colorChanged =
+                    ImGui::ColorEdit4("SubColor", currentColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+                if (colorChanged) {
+                    Color_RGBA8 colorSelected;
+                    colorSelected.r = static_cast<uint8_t>(currentColor[0] * 255.0f);
+                    colorSelected.g = static_cast<uint8_t>(currentColor[1] * 255.0f);
+                    colorSelected.b = static_cast<uint8_t>(currentColor[2] * 255.0f);
+                    colorSelected.a = static_cast<uint8_t>(currentColor[3] * 255.0f);
+
+                    CVarSetColor(subEntry.colorCvar, colorSelected);
+                    CVarSetInteger(subEntry.colorChangedCvar, true);
+                }
+            }
+
             ImGui::SameLine();
             if (ImGui::Button(ICON_FA_UNDO, ImVec2(27.0f, 27.0f))) {
                 CVarClear(entry.colorCvar);
                 CVarClear(entry.colorChangedCvar);
+                for (int i = 0; i < subEntries.size(); i++){
+                    CosmeticEditorElement subEntry = cosmeticEditorElements[subEntries[i]];
+                    CVarClear(subEntry.colorCvar);
+                    CVarClear(subEntry.colorChangedCvar);
+                }
             }
             ImGui::SameLine();
             if (ImGui::Button(ICON_FA_RECYCLE, ImVec2(27.0f, 27.0f))) {
@@ -228,7 +279,7 @@ void CosmeticEditorDrawColorTab() {
             ImGui::TextColored(CVarGetInteger(entry.colorChangedCvar, 0) ? UIWidgets::Colors::LightGreen
                                                                          : UIWidgets::Colors::Gray,
                                CVarGetInteger(entry.colorChangedCvar, 0) ? "Modified" : "Default");
-            if (entry.derivedFrom != COSMETIC_ELEMENT_NONE) {
+            if (derived) {
                 ImGui::SameLine();
                 if (ImGui::Button(ICON_FA_ARROW_DOWN, ImVec2(27.0f, 27.0f))) {
                     CosmeticEditorCalculateDerivedElement(entry);

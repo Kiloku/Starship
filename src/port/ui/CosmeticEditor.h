@@ -36,10 +36,14 @@ typedef enum CosmeticEditorElementID{
     COSMETIC_ELEMENT_ANDREW_RADAR_COLOR,
 
     COSMETIC_ELEMENT_ARWING_ENGINE_PLANET,
+    COSMETIC_ELEMENT_ARWING_ENGINE_PLANET_SECONDARY,
     COSMETIC_ELEMENT_ARWING_ENGINE_SPACE,
+    COSMETIC_ELEMENT_ARWING_ENGINE_SPACE_SECONDARY,
 
     COSMETIC_ELEMENT_WOLFEN_ENGINE_PLANET,
+    COSMETIC_ELEMENT_WOLFEN_ENGINE_PLANET_SECONDARY,
     COSMETIC_ELEMENT_WOLFEN_ENGINE_SPACE,
+    COSMETIC_ELEMENT_WOLFEN_ENGINE_SPACE_SECONDARY,
 
     COSMETIC_ELEMENT_MAX
 } CosmeticEditorElementID;
@@ -87,5 +91,6 @@ Color_RGBA8 CosmeticEditor_getChangedColor(u8 r, u8 g, u8 b, u8 a, const char* c
             "gCosmetic." cvar ".Changed"                                                                                            \
     }
 #ifdef __cplusplus
+std::vector<CosmeticEditorElementID> GetAllDerivedFrom(CosmeticEditorElementID id);
 }
 #endif //__cplusplus
