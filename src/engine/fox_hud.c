@@ -1740,16 +1740,28 @@ void HUD_RadarMark_Item_Draw(void) {
 
 void HUD_RadarMark_Ally_Draw(void) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_62);
-    gDPSetPrimColor(gMasterDisp++, 0, 0, 128, 255, 128, 255);
-    Matrix_Scale(gGfxMatrix, 16.0f, 16.0f, 1.0f, MTXF_APPLY);
+    gDPSetPrimColor(gMasterDisp++, 0, 0, 0, 0, 0, 255);
+    Matrix_Scale(gGfxMatrix, 18.0f, 22.0f, 1.0f, MTXF_APPLY);
+    Matrix_SetGfxMtx(&gMasterDisp);
+    gSPDisplayList(gMasterDisp++, aKattRadarMarkDL);
+
+    RCP_SetupDL(&gMasterDisp, SETUPDL_62);
+    gDPSetPrimColor(gMasterDisp++, 0, 0, 48, 96, 48, 255);
+    Matrix_Scale(gGfxMatrix, 0.8f, 0.8f, 1.0f, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
     gSPDisplayList(gMasterDisp++, aKattRadarMarkDL);
 }
 
 void HUD_RadarMark_Enemy_Draw(void) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_62);
-    gDPSetPrimColor(gMasterDisp++, 0, 0, 128, 0, 0, 255);
-    Matrix_Scale(gGfxMatrix, 16.0f, 16.0f, 1.0f, MTXF_APPLY);
+    gDPSetPrimColor(gMasterDisp++, 0, 0, 0, 0, 0, 255);
+    Matrix_Scale(gGfxMatrix, 18.0f, 22.0f, 1.0f, MTXF_APPLY);
+    Matrix_SetGfxMtx(&gMasterDisp);
+    gSPDisplayList(gMasterDisp++, aKattRadarMarkDL);
+
+    RCP_SetupDL(&gMasterDisp, SETUPDL_62);
+    gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
+    Matrix_Scale(gGfxMatrix, 0.8f, 0.8f, 1.0f, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
     gSPDisplayList(gMasterDisp++, aKattRadarMarkDL);
 }
