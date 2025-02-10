@@ -25,16 +25,16 @@ Your ROM needs to be in .z64 format. If it's in .n64 format, use the following t
 
 ### 2. Download Starship from [Releases](https://github.com/HarbourMasters/Starship/releases)
 
-### 3. Generating the OTR from the ROM
+### 3. Generating the O2R from the ROM
 #### Windows
 * Extract every file from the zip into a folder of your choosing.
 * Copy your ROM to the root of the folder you extracted the zip to.
-* Run "generate_otr.bat"
+* Run "generate_o2r.bat"
 
 #### MacOS
 * Extract every file from the zip into a folder of your choosing.
 * Copy your ROM to the root of the folder you extracted the zip to.
-* Run "generate_otr.sh"
+* Run "generate_o2r.sh"
 
 ### 4. Play!
 * Launch `Starship.exe`
@@ -59,7 +59,6 @@ Congratulations, you are now sailing with Starship! Have fun!
 Currently, there are three rendering APIs supported: DirectX11 (Windows), OpenGL (all platforms), and Metal (macOS). You can change which API to use in the `Settings` menu of the menubar, which requires a restart.  If you're having an issue with crashing, you can change the API in the `starship.cfg.json` file by finding the line `"Backend":{`... and changing the `id` value to `3` and set the `Name` to `OpenGL`. `DirectX 11` with id `2` is the default on Windows. `Metal` with id `4` is the default on macOS.
 
 # Custom Assets
-
 Custom assets are packed in `.o2r` or `.otr` files. To use custom assets, place them in the `mods` folder.
 
 If you're interested in creating and/or packing your own custom asset `.o2r`/`.otr` files, check out the following tools:
@@ -71,12 +70,12 @@ If you're interested in creating and/or packing your own custom asset `.o2r`/`.o
 
 If you want to manually compile Starship, please consult the [building instructions](https://github.com/HarbourMasters/Starship/blob/main/docs/BUILDING.md).
 
-<a href="https://github.com/Kenix3/libultraship/">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./docs/poweredbylus.darkmode.png">
-    <img alt="Powered by libultraship" src="./docs/poweredbylus.lightmode.png">
-  </picture>
-</a>
+### Playtesting
+If you want to playtest a continuous integration build, you can find them at the links below. Keep in mind that these are for playtesting only, and you will likely encounter bugs and possibly crashes. 
+
+* [Windows](https://nightly.link/HarbourMasters/Starship/workflows/main/main/starship-windows.zip)
+* [macOS](https://nightly.link/HarbourMasters/Starship/workflows/main/main/starship-mac-x64.zip)
+* [Linux](https://nightly.link/HarbourMasters/Starship/workflows/main/main/Starship-linux.zip)
 
 # Special Thanks:
 
@@ -95,3 +94,11 @@ If you want to manually compile Starship, please consult the [building instructi
 * [Thar0](https://github.com/Thar0) : for contributing with an improved Starfield that can be interpolated to any framerate.
 * [TheBoy181](https://github.com/TheBoy181) : for contributing to this project with various widescreen enhancements such as level floors, an extended Starfield among other things.
 * [Wiseguy](https://github.com/Mr-Wiseguy) : for providing important information about the inner workings of the N64 platform, as well as helping with the decompilation process.
+
+
+<a href="https://github.com/Kenix3/libultraship/">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./docs/poweredbylus.darkmode.png">
+    <img alt="Powered by libultraship" src="./docs/poweredbylus.lightmode.png">
+  </picture>
+</a>

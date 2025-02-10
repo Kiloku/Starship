@@ -17,6 +17,8 @@
 #include "assets/ast_font_3d.h"
 #include "port/interpolation/FrameInterpolation.h"
 
+extern bool gBackToMap;
+
 // BSS STARTS HERE
 u8 gMapVenomCloudTex[96 * 96];
 u8 gMapCorneriaTex[96 * 96];
@@ -2143,7 +2145,8 @@ void Map_Prologue_Update(void) {
             break;
     }
 
-    if (gControllerPress[gMainController].button & START_BUTTON) {
+    if ((gControllerPress[gMainController].button & START_BUTTON) || gBackToMap) {
+        gBackToMap = false;
         AUDIO_PLAY_BGM(NA_BGM_MAP);
         AUDIO_PLAY_SFX(NA_SE_MAP_MOVE_STOP, gDefaultSfxSource, 4);
 
@@ -6719,6 +6722,9 @@ void Map_Idle_Update(void) {
     movingCamera = false;
 
     if (gControllerPress[gMainController].button & A_BUTTON) {
+        if (CVarGetInteger("gLevelSelector", 0) == 1) {
+            goto loadLevel;
+        }
         if ((gLastGameState == GSTATE_PLAY) && (sPrevMissionStatus != MISSION_COMPLETE) && !D_menu_801CEFD0) {
             Audio_PlayMapMenuSfx(1);
             D_menu_801CEFC4 = 1;
@@ -6727,6 +6733,7 @@ void Map_Idle_Update(void) {
             sMapState = MAP_PATH_CHANGE;
             D_menu_801CD94C = 0;
         } else {
+            loadLevel:
             for (i = 0; i < TEAM_ID_MAX; i++) {
                 D_ctx_80177C58[i] = gTeamShields[i];
             }
