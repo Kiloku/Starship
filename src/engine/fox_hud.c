@@ -1789,19 +1789,49 @@ void HUD_RadarMark_Arwing_Draw(s32 colorIdx) {
     }
 
     RCP_SetupDL(&gMasterDisp, SETUPDL_62);
-    gDPSetPrimColor(gMasterDisp++, 0, 0, arwingMarkColor[colorIdx][0], arwingMarkColor[colorIdx][1],
-                    arwingMarkColor[colorIdx][2], arwingMarkColor[colorIdx][3]);
-    Matrix_Scale(gGfxMatrix, var_fv1, var_fv2, 1.0f, MTXF_APPLY);
-    Matrix_SetGfxMtx(&gMasterDisp);
-    gSPDisplayList(gMasterDisp++, aRadarMarkArwingDL);
+    if (CVarGetInteger("gFighterOutlines", 0) == 1){
+        gDPSetPrimColor(gMasterDisp++, 0, 0,0,0,0,255);
+        Matrix_Scale(gGfxMatrix, var_fv1, var_fv2, 1.0f, MTXF_APPLY);
+        Matrix_SetGfxMtx(&gMasterDisp);
+        gSPDisplayList(gMasterDisp++, aRadarMarkArwingDL);
+
+        gDPSetPrimColor(gMasterDisp++, 0, 0, arwingMarkColor[colorIdx][0], arwingMarkColor[colorIdx][1],
+                        arwingMarkColor[colorIdx][2], arwingMarkColor[colorIdx][3]);
+        Matrix_Translate(gGfxMatrix, 0.0f, 1.0f, 0.0f, MTXF_APPLY);
+        Matrix_Scale(gGfxMatrix, 0.8f, 0.7f, 1.0f, MTXF_APPLY);
+        Matrix_SetGfxMtx(&gMasterDisp);
+        gSPDisplayList(gMasterDisp++, aRadarMarkArwingDL);
+    }
+    else{
+        gDPSetPrimColor(gMasterDisp++, 0, 0, arwingMarkColor[colorIdx][0], arwingMarkColor[colorIdx][1],
+            arwingMarkColor[colorIdx][2], arwingMarkColor[colorIdx][3]);
+        Matrix_Scale(gGfxMatrix, var_fv1, var_fv2, 1.0f, MTXF_APPLY);
+        Matrix_SetGfxMtx(&gMasterDisp);
+        gSPDisplayList(gMasterDisp++, aRadarMarkArwingDL);
+
+    }
 }
 
 void HUD_RadarMark_StarWolf_Draw(void) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_62);
-    gDPSetPrimColor(gMasterDisp++, 0, 0, 0, 0, 0, 255);
-    Matrix_Scale(gGfxMatrix, 54.0f, 54.0f, 1.0f, MTXF_APPLY);
-    Matrix_SetGfxMtx(&gMasterDisp);
-    gSPDisplayList(gMasterDisp++, aStarWolfRadarMarkDL);
+        if (CVarGetInteger("gFighterOutlines", 0) == 1){
+        gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
+        Matrix_Scale(gGfxMatrix, 54.0f, 54.0f, 1.0f, MTXF_APPLY);
+        Matrix_SetGfxMtx(&gMasterDisp);
+        gSPDisplayList(gMasterDisp++, aStarWolfRadarMarkDL);
+
+        gDPSetPrimColor(gMasterDisp++, 0, 0, 0, 0, 0, 255);
+        Matrix_Translate(gGfxMatrix, 0.0f, -1.2f, 0.0f, MTXF_APPLY);
+        Matrix_Scale(gGfxMatrix, 0.9f, 0.8f, 1.0f, MTXF_APPLY);
+        Matrix_SetGfxMtx(&gMasterDisp);
+        gSPDisplayList(gMasterDisp++, aStarWolfRadarMarkDL);
+    }
+    else { 
+        gDPSetPrimColor(gMasterDisp++, 0, 0, 0, 0, 0, 255);
+        Matrix_Scale(gGfxMatrix, 54.0f, 54.0f, 1.0f, MTXF_APPLY);
+        Matrix_SetGfxMtx(&gMasterDisp);
+        gSPDisplayList(gMasterDisp++, aStarWolfRadarMarkDL);    
+    }
 }
 
 void HUD_RadarMark_Katt_Draw(void) {
