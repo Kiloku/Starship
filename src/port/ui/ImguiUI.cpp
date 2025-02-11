@@ -473,6 +473,7 @@ void DrawEnhancementsMenu() {
                 .tooltip = "Character heads are displayed inside Arwings in all cutscenes",
                 .defaultValue = true
             });
+            UIWidgets::CVarCheckbox("Use red radio backgrounds for enemies.", "gEnemyRedRadio");
             UIWidgets::CVarSliderInt("Cockpit Glass Opacity: %d", "gCockpitOpacity", 0, 255, 120);
             
 
@@ -716,6 +717,10 @@ void DrawDebugMenu() {
         UIWidgets::CVarCheckbox("Debug Ending", "gDebugEnding", {
             .tooltip = "Jump to credits at the main menu"
         });
+
+        if (gGameState == GSTATE_PLAY){
+            UIWidgets::CVarCheckbox("Debug Pause", "gDebugPause");
+        }
 
         if (CVarGetInteger(StringHelper::Sprintf("gCheckpoint.%d.Set", gCurrentLevel).c_str(), 0)) {
             if (UIWidgets::Button("Clear Checkpoint")) {

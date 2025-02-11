@@ -164,6 +164,10 @@ void OnGameUpdatePost(IEvent* event) {
     }
 }
 
+void OnPlayUpdateEvent(IEvent* event){
+    event->cancelled = CVarGetInteger("gDebugPause", 0);
+}
+
 void RefillBoostMeter(Player* player) {
     if (player->boostMeter > 1.0f) {
         player->boostMeter = 1.0f;
@@ -296,6 +300,25 @@ void OnBombCounterDraw(IEvent* ev){
     HUD_BombCounter_Draw(253.0f, 18.0f);
 }
 
+void OnPreSetupRadioMsgEvent(PreSetupRadioMsgEvent* ev){
+    bool enemyRedRadio = CVarGetInteger("gEnemyRedRadio", 0);
+    if (!enemyRedRadio)
+    {
+        return;
+    }
+    if (gRadioMsgRadioId == RCID_BOSS_CORNERIA || gRadioMsgRadioId == RCID_BOSS_CORNERIA2 || 
+        gRadioMsgRadioId == RCID_BOSS_METEO || gRadioMsgRadioId == RCID_BOSS_SECTORX ||
+        gRadioMsgRadioId == RCID_BOSS_SECTORY ||  gRadioMsgRadioId == RCID_BOSS_MACBETH ||
+        gRadioMsgRadioId == RCID_BOSS_ZONESS || gRadioMsgRadioId == RCID_BOSS_AREA6 ||
+        gRadioMsgRadioId == RCID_CAIMAN_AREA6 || gRadioMsgRadioId == RCID_WOLF ||
+        gRadioMsgRadioId == RCID_PIGMA || gRadioMsgRadioId == RCID_LEON ||
+        gRadioMsgRadioId == RCID_ANDREW || gRadioMsgRadioId == RCID_WOLF_2 || 
+        gRadioMsgRadioId == RCID_PIGMA_2 || gRadioMsgRadioId == RCID_LEON_2 ||
+        gRadioMsgRadioId == RCID_ANDREW_2) {
+            *ev->radioRedBox = true;
+        }
+}
+
 void OnRadarMarkArwingDraw(DrawRadarMarkArwingEvent* ev){
     bool outlines = CVarGetInteger("gFighterOutlines", 0);
     if (!outlines){
@@ -377,10 +400,12 @@ void PortEnhancements_Init() {
     // Register event listeners
     REGISTER_LISTENER(DisplayPostUpdateEvent, OnDisplayUpdatePost, EVENT_PRIORITY_NORMAL);
     REGISTER_LISTENER(GamePostUpdateEvent, OnGameUpdatePost, EVENT_PRIORITY_NORMAL);
+    REGISTER_LISTENER(PlayUpdateEvent, OnPlayUpdateEvent, EVENT_PRIORITY_NORMAL);
     REGISTER_LISTENER(PlayerPostUpdateEvent, OnPlayerUpdatePost, EVENT_PRIORITY_NORMAL);
     REGISTER_LISTENER(DrawBoostGaugeHUDEvent, OnBoostGaugeDraw, EVENT_PRIORITY_NORMAL);
     REGISTER_LISTENER(DrawLivesCounterHUDEvent, OnLivesCounterDraw, EVENT_PRIORITY_NORMAL);
     REGISTER_LISTENER(DrawBombCounterHUDEvent, OnBombCounterDraw, EVENT_PRIORITY_NORMAL);
+    REGISTER_LISTENER(PreSetupRadioMsgEvent, OnPreSetupRadioMsgEvent, EVENT_PRIORITY_NORMAL);
     REGISTER_LISTENER(DrawRadarMarkArwingEvent, OnRadarMarkArwingDraw, EVENT_PRIORITY_NORMAL);
     REGISTER_LISTENER(DrawRadarMarkWolfenEvent, OnRadarMarkWolfenDraw, EVENT_PRIORITY_NORMAL);
 
@@ -392,6 +417,9 @@ void PortEnhancements_Init() {
     REGISTER_LISTENER(PlayerActionBrakeEvent, OnPlayerBrake, EVENT_PRIORITY_NORMAL);
     REGISTER_LISTENER(PlayerActionPostShootEvent, OnPlayerShootPost, EVENT_PRIORITY_NORMAL);
     REGISTER_LISTENER(PlayerActionPreShootChargedEvent, OnPlayerShootChargedPre, EVENT_PRIORITY_NORMAL);
+
+    //If we close the game while debug pause is active, we want it to be deactivated when we run again.
+    CVarSetInteger("gDebugPause", 0);
 }
 
 void PortEnhancements_Register() {
@@ -402,6 +430,8 @@ void PortEnhancements_Register() {
     REGISTER_EVENT(GamePreUpdateEvent);
     REGISTER_EVENT(GamePostUpdateEvent);
 
+    REGISTER_EVENT(PlayUpdateEvent);
+
     REGISTER_EVENT(PlayerPreUpdateEvent);
     REGISTER_EVENT(PlayerPostUpdateEvent);
 
@@ -411,6 +441,7 @@ void PortEnhancements_Register() {
     REGISTER_EVENT(DrawBoostGaugeHUDEvent);
     REGISTER_EVENT(DrawBombCounterHUDEvent);
     REGISTER_EVENT(DrawIncomingMsgHUDEvent);
+    REGISTER_EVENT(PreSetupRadioMsgEvent);
     REGISTER_EVENT(DrawGoldRingsHUDEvent);
     REGISTER_EVENT(DrawLivesCounterHUDEvent);
     REGISTER_EVENT(DrawTrainingRingPassCountHUDEvent);
